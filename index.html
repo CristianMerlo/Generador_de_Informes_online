@@ -1,476 +1,256 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <title>SISTEMA ELITE V9 - Generador de Informes Mostaza</title>
-  <script src="https://cdn.tailwindcss.com"></script>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/signature_pad@4.0.0/dist/signature_pad.umd.min.js"></script>
-  <style>
-    :root { --mostaza: #F58220; --dark: #1A1A1B; }
-    body { background-color: #f3f4f6; font-family: sans-serif; }
-    body.dark-mode { background-color: #000; color: #fff; }
-    .card { background: white; border: 2px solid #d1d5db; border-radius: 8px; padding: 1rem; margin-bottom: 1rem; }
-    body.dark-mode .card { background: #111; border-color: #333; }
-    label { font-size: 10px; font-weight: 900; text-transform: uppercase; color: #6b7280; display: block; margin-bottom: 4px; }
-    body.dark-mode label { color: #9ca3af; }
-    input, select, textarea { border: 2px solid #9ca3af !important; padding: 12px !important; font-size: 16px !important; width: 100%; border-radius: 4px; background: #fff; color: #000; box-sizing: border-box; }
-    body.dark-mode input, body.dark-mode select, body.dark-mode textarea { background: #222; color: #fff; border-color: #444 !important; }
-    .tag-btn { background: #e5e7eb; border: 1px solid #9ca3af; padding: 6px 10px; border-radius: 4px; font-size: 11px; font-weight: bold; cursor: pointer; color: #000; }
-    .signature-box { border: 2px solid #000; background: #fff; border-radius: 4px; overflow: hidden; }
-    .led-pulse { animation: pulse 2s infinite; }
-    @keyframes pulse { 0% { opacity: 1; } 50% { opacity: 0.5; } 100% { opacity: 1; } }
-    .btn-primary { background: var(--mostaza); color: white; padding: 12px 24px; border-radius: 6px; font-weight: bold; border: none; cursor: pointer; width: 100%; font-size: 14px; text-transform: uppercase; }
-    .btn-secondary { background: #374151; color: white; padding: 10px 16px; border-radius: 6px; font-weight: bold; border: none; cursor: pointer; font-size: 12px; text-transform: uppercase; }
-    .btn-danger { background: #dc2626; color: white; padding: 10px 16px; border-radius: 6px; font-weight: bold; border: none; cursor: pointer; font-size: 12px; text-transform: uppercase; }
-    .btn-success { background: #16a34a; color: white; padding: 10px 16px; border-radius: 6px; font-weight: bold; border: none; cursor: pointer; font-size: 12px; text-transform: uppercase; }
-    .color-indicator { width: 12px; height: 12px; border-radius: 50%; display: inline-block; margin-right: 6px; }
-    .status-verde { background: #16a34a; }
-    .status-amarillo { background: #eab308; }
-    .status-rojo { background: #dc2626; }
-    .equipo-item { border-left: 3px solid var(--mostaza); padding-left: 12px; margin-bottom: 12px; }
-    body.dark-mode .equipo-item { border-left-color: var(--mostaza); }
-    select option { background: #fff; color: #000; }
-    body.dark-mode select option { background: #222; color: #fff; }
-    .photo-preview { width: 90px; height: 70px; object-fit: cover; border-radius: 4px; border: 2px solid #e5e7eb; }
-  </style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>SISTEMA ELITE V8 - FULL INTEGRATED</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/signature_pad@4.0.0/dist/signature_pad.umd.min.js"></script>
+    <style>
+        :root { --mostaza: #F58220; --dark: #1A1A1B; }
+        body { background-color: #f3f4f6; font-family: sans-serif; }
+        body.dark-mode { background-color: #000; color: #fff; }
+        .card { background: white; border: 2px solid #d1d5db; border-radius: 8px; padding: 1rem; margin-bottom: 1rem; }
+        body.dark-mode .card { background: #111; border-color: #333; }
+        label { font-size: 10px; font-weight: 900; text-transform: uppercase; color: #6b7280; display: block; margin-bottom: 4px; }
+        input, select, textarea { border: 2px solid #9ca3af !important; padding: 12px !important; font-size: 16px !important; width: 100%; border-radius: 4px; background: #fff; color: #000; }
+        body.dark-mode input, body.dark-mode select, body.dark-mode textarea { background: #222; color: #fff; border-color: #444 !important; }
+        .tag-btn { background: #e5e7eb; border: 1px solid #9ca3af; padding: 6px 10px; border-radius: 4px; font-size: 11px; font-weight: bold; cursor: pointer; color: #000; }
+        .signature-box { border: 2px solid #000; background: #fff; border-radius: 4px; overflow: hidden; }
+        .led-pulse { animation: pulse 2s infinite; }
+        @keyframes pulse { 0% { opacity: 1; } 50% { opacity: 0.5; } 100% { opacity: 1; } }
+    </style>
 </head>
 <body class="pb-24">
 
 <header class="bg-[#1A1A1B] text-white p-4 sticky top-0 z-50 flex justify-between items-center border-b-4 border-[#F58220]">
-  <div class="flex items-center gap-3">
-    <div id="statusLed" class="h-5 w-5 rounded-full bg-gray-500 led-pulse"></div>
-    <div>
-      <h1 class="text-lg font-bold uppercase leading-none">Mostaza <span class="text-[#F58220]">Elite V9</span></h1>
-      <p id="statusMsg" class="text-[9px] font-bold uppercase text-gray-400">Estado: Verificando...</p>
+    <div class="flex items-center gap-3">
+        <div id="statusLed" class="h-5 w-5 rounded-full bg-gray-500 led-pulse"></div>
+        <div>
+            <h1 class="text-lg font-bold uppercase leading-none">Mostaza <span class="text-[#F58220]">Elite V8</span></h1>
+            <p id="statusMsg" class="text-[9px] font-bold uppercase text-gray-400 text-orange-400">Estado: Verificando...</p>
+        </div>
     </div>
-  </div>
-  <div class="flex gap-2">
-    <button onclick="toggleDarkMode()" class="bg-gray-700 p-2 rounded text-[10px] font-bold uppercase">Modo</button>
     <button onclick="resetAll()" class="bg-red-700 p-2 rounded text-[10px] font-bold uppercase text-white">Reset</button>
-  </div>
 </header>
 
 <main class="max-w-2xl mx-auto p-3">
+    <form id="mainForm">
+        <div class="card border-l-8 border-l-orange-500">
+            <h3 class="text-xs font-black uppercase text-gray-500 mb-3 border-b">1. Administración y Operación</h3>
+            <div class="grid grid-cols-2 gap-3">
+                <div class="col-span-2"><label>Local / Sucursal</label><input type="text" id="local" class="persist uppercase" placeholder="EJ: FLORES"></div>
+                <div><label>Ticket #</label><input type="text" id="ticket" class="persist"></div>
+                <div>
+                    <label>Técnico Responsable</label>
+                    <select id="tecnico" class="persist">
+                        <option value="Fernando Soria">FERNANDO SORIA</option>
+                        <option value="Tomas Vera">TOMAS VERA</option>
+                        <option value="Ana Guerrero">ANA GUERRERO</option>
+                    </select>
+                </div>
+                <div><label>Labor (Tiempo)</label><input type="time" id="labor" class="persist"></div>
+                <div><label>Viáticos (ARS $)</label><input type="number" id="viaticos" class="persist" placeholder="0.00"></div>
+            </div>
+        </div>
 
-<form id="mainForm">
+        <div class="card">
+            <h3 class="text-xs font-black uppercase text-orange-500 mb-3 border-b">2. Calidad de Agua (Prioridad Alta)</h3>
+            <div class="space-y-4">
+                <div><label>PPM Post-Filtrado</label><input type="number" id="ppm" class="persist" oninput="evaluarJerarquia()"></div>
+                <div class="grid grid-cols-3 gap-2">
+                    <div><label>Filtro</label><select id="f_filtrado" class="persist text-xs" onchange="evaluarJerarquia()"><option value="OP">OP</option><option value="NO OP">NO OP</option><option value="N/A">N/A</option></select></div>
+                    <div><label>Ablandador</label><select id="f_ablandador" class="persist text-xs" onchange="evaluarJerarquia()"><option value="OP">OP</option><option value="NO OP">NO OP</option><option value="N/A">N/A</option></select></div>
+                    <div><label>Ósmosis</label><select id="f_osmosis" class="persist text-xs" onchange="evaluarJerarquia()"><option value="N/A">N/A</option><option value="OP">OP</option><option value="NO OP">NO OP</option></select></div>
+                </div>
+            </div>
+        </div>
 
-  <!-- SECCION 1: DATOS GENERALES -->
-  <div class="card border-l-8 border-l-orange-500">
-    <h3 class="text-xs font-black uppercase text-gray-500 mb-3 border-b pb-1">1. Administracion y Operaciones</h3>
-    
-    <div class="grid grid-cols-2 gap-2 mb-2">
-      <div>
-        <label>Local</label>
-        <select id="local" onchange="loadConfig()">
-          <option value="">-- Seleccionar --</option>
-          <option value="BERAZATEGUI">Berazategui</option>
-          <option value="MERLO">Merlo</option>
-          <option value="QUILMES">Quilmes</option>
-          <option value="LANUS">Lanus</option>
-          <option value="ROSARIO">Rosario</option>
-          <option value="SANTA FE">Santa Fe</option>
-          <option value="MENDOZA">Mendoza</option>
-          <option value="TUCUMAN">Tucuman</option>
-        </select>
-      </div>
-      <div>
-        <label>Ticket</label>
-        <input type="text" id="ticket" placeholder="Ej: 00012345">
-      </div>
-    </div>
+        <div id="equiposGrid"></div>
+        <button type="button" onclick="addEquipo()" class="w-full mb-6 py-3 border-2 border-dashed border-gray-400 font-bold text-gray-400 uppercase text-xs">+ Añadir Relevamiento de Equipo</button>
 
-    <div class="grid grid-cols-2 gap-2 mb-2">
-      <div>
-        <label>Tecnico</label>
-        <input type="text" id="tecnico" placeholder="Nombre completo">
-      </div>
-      <div>
-        <label>Labor Realizada</label>
-        <select id="labor">
-          <option value="">-- Seleccionar --</option>
-          <option value="Mantenimiento Preventivo">Mantenimiento Preventivo</option>
-          <option value="Mantenimiento Correctivo">Mantenimiento Correctivo</option>
-          <option value="Instalacion Nueva">Instalacion Nueva</option>
-          <option value="Reparacion Mayor">Reparacion Mayor</option>
-          <option value="Calibracion">Calibracion</option>
-          <option value="Limpieza Técnica">Limpieza Técnica</option>
-        </select>
-      </div>
-    </div>
+        <div class="card">
+            <h3 class="text-xs font-black uppercase mb-2">3. Registro Fotográfico</h3>
+            <input type="file" id="fotoInput" accept="image/*" multiple class="text-xs mb-2">
+            <div id="fotoPreview" class="grid grid-cols-4 gap-2"></div>
+        </div>
 
-    <div class="mb-2">
-      <label>Viaticos ($)</label>
-      <input type="number" id="viaticos" placeholder="0" min="0">
-    </div>
+        <div class="card">
+            <h3 class="text-xs font-black uppercase mb-4 text-center">4. Cierre y Validación de Servicio</h3>
+            <div class="grid grid-cols-1 gap-6">
+                <div class="text-center">
+                    <label>Firma Técnico</label>
+                    <div class="signature-box mx-auto"><canvas id="padT" width="350" height="150" class="w-full h-auto"></canvas></div>
+                    <button type="button" onclick="padT.clear()" class="text-[9px] underline uppercase mt-1">Limpiar</button>
+                </div>
+                <div class="text-center border-t pt-4">
+                    <label>Firma Encargado Local</label>
+                    <div class="signature-box mx-auto mb-2"><canvas id="padE" width="350" height="150" class="w-full h-auto"></canvas></div>
+                    <input type="text" id="nombreEncargado" class="persist text-sm uppercase text-center font-bold" placeholder="NOMBRE COMPLETO ENCARGADO">
+                    <button type="button" onclick="padE.clear()" class="text-[9px] underline uppercase mt-1">Limpiar Firma</button>
+                </div>
+            </div>
+        </div>
 
-    <div>
-      <label>PPM (Partes Por Millon - Cloro)</label>
-      <input type="number" id="ppm" placeholder="Ej: 50" min="0" max="500">
-    </div>
-  </div>
-
-  <!-- SECCION 2: EQUIPOS -->
-  <div class="card border-l-8 border-l-orange-500">
-    <div class="flex justify-between items-center mb-3 border-b pb-1">
-      <h3 class="text-xs font-black uppercase text-gray-500">2. Equipos - Estado y Repuestos</h3>
-      <button type="button" onclick="agregarEquipo()" class="tag-btn bg-green-100 text-green-800 border-green-300">+ Agregar Equipo</button>
-    </div>
-    <div id="equiposContainer"></div>
-  </div>
-
-  <!-- SECCION 3: FOTOS -->
-  <div class="card border-l-8 border-l-orange-500">
-    <h3 class="text-xs font-black uppercase text-gray-500 mb-3 border-b pb-1">3. Evidencia Fotografica</h3>
-    <div class="flex flex-col gap-2">
-      <label>Subir foto del trabajo</label>
-      <input type="file" id="fotoInput" accept="image/*" capture="environment" onchange="procesarFoto(this)">
-      <div id="fotosPreview" class="flex flex-wrap gap-2 mt-2"></div>
-    </div>
-  </div>
-
-  <!-- SECCION 4: FIRMA -->
-  <div class="card border-l-8 border-l-orange-500">
-    <h3 class="text-xs font-black uppercase text-gray-500 mb-3 border-b pb-1">4. Validacion de Conformidad</h3>
-    <div class="mb-2">
-      <label>Nombre del Encargado</label>
-      <input type="text" id="nombreEncargado" placeholder="Nombre y apellido del encargado del local">
-    </div>
-    <div>
-      <label>Firma del Tecnico</label>
-      <div class="signature-box">
-        <canvas id="signaturePad" width="100%" height="150" style="width:100%;height:150px;"></canvas>
-      </div>
-      <button type="button" onclick="limpiarFirma()" class="tag-btn mt-2">Borrar Firma</button>
-    </div>
-  </div>
-
-  <!-- SECCION 5: ACCIONES -->
-  <div class="card border-l-8 border-l-orange-500">
-    <h3 class="text-xs font-black uppercase text-gray-500 mb-3 border-b pb-1">5. Acciones Finales</h3>
-    <div class="flex flex-col gap-2">
-      <button type="button" onclick="generarPDF()" class="btn-primary">Generar PDF</button>
-      <button type="button" onclick="sendWA()" class="btn-success">Enviar por WhatsApp</button>
-      <button type="button" onclick="guardarBorrador()" class="btn-secondary">Guardar Borrador</button>
-    </div>
-  </div>
-
-</form>
-
+        <div class="flex flex-col gap-3">
+            <button type="button" onclick="generarPDF()" class="bg-[#F58220] text-white py-4 text-xl font-black uppercase rounded shadow-xl border-b-4 border-orange-800">Generar Informe PDF</button>
+            <button type="button" onclick="sendWA()" class="bg-[#25D366] text-white py-3 font-bold uppercase rounded flex items-center justify-center gap-2"><span>Enviar WhatsApp</span></button>
+        </div>
+    </form>
 </main>
 
 <script>
-  // Configuraciones por local
-  const configLocales = {
-    BERAZATEGUI: { ppmMin: 30, ppmMax: 80 },
-    MERLO: { ppmMin: 30, ppmMax: 80 },
-    QUILMES: { ppmMin: 30, ppmMax: 80 },
-    LANUS: { ppmMin: 30, ppmMax: 80 },
-    ROSARIO: { ppmMin: 25, ppmMax: 75 },
-    'SANTA FE': { ppmMin: 25, ppmMax: 75 },
-    MENDOZA: { ppmMin: 20, ppmMax: 70 },
-    TUCUMAN: { ppmMin: 20, ppmMax: 70 }
-  };
+    let processedImages = [];
+    let padT, padE;
+    let colorFinal = "VERDE";
+    const TAREAS = ["Limpieza grupo", "Cambio juntas", "Calibración", "Descalcificación", "Revisión eléctrica"];
 
-  let processedImages = [];
-  let pad;
-  let equipoCount = 0;
-
-  // EQUIPOS DISPONIBLES
-  const tiposEquipo = [
-    'Maquina de Espresso', 'Licuadora', 'Batido', 'Freezer', 'Heladera',
-    'Horno', 'Freidora', 'Plancha', 'Grill', 'Soda', 'Mesa Caliente',
-    'Filtro de Agua', 'Dispensador', 'Caja Registradora', 'Otro'
-  ];
-
-  // INICIALIZAR
-  document.addEventListener('DOMContentLoaded', function() {
-    initSignaturePad();
-    loadConfig();
-    cargarBorrador();
-  });
-
-  // FIRMA
-  function initSignaturePad() {
-    const canvas = document.getElementById('signaturePad');
-    pad = new SignaturePad(canvas);
-    function resizeCanvas() {
-      const ratio = Math.max(window.devicePixelRatio || 1, 1);
-      canvas.width = canvas.offsetWidth * ratio;
-      canvas.height = canvas.offsetHeight * ratio;
-      canvas.getContext('2d').scale(ratio, ratio);
-      pad.clear();
-    }
-    window.addEventListener('resize', resizeCanvas);
-    resizeCanvas();
-  }
-
-  function limpiarFirma() {
-    if (pad) pad.clear();
-  }
-
-  // MODO OSCURO
-  function toggleDarkMode() {
-    document.body.classList.toggle('dark-mode');
-    localStorage.setItem('darkMode', document.body.classList.contains('dark-mode'));
-  }
-
-  // CARGAR CONFIG POR LOCAL
-  function loadConfig() {
-    const local = document.getElementById('local').value;
-    const ppmInput = document.getElementById('ppm');
-    const led = document.getElementById('statusLed');
-    const statusMsg = document.getElementById('statusMsg');
-    if (configLocales[local]) {
-      ppmInput.placeholder = 'Min: ' + configLocales[local].ppmMin + ' - Max: ' + configLocales[local].ppmMax;
-      led.className = 'h-5 w-5 rounded-full bg-green-500 led-pulse';
-      statusMsg.textContent = 'Estado: ' + local + ' - Rango OK';
-      statusMsg.className = 'text-[9px] font-bold uppercase text-green-400';
-    } else {
-      led.className = 'h-5 w-5 rounded-full bg-yellow-500 led-pulse';
-      statusMsg.textContent = 'Estado: Sin rango configurado';
-      statusMsg.className = 'text-[9px] font-bold uppercase text-yellow-400';
-    }
-  }
-
-  // AGREGAR EQUIPO
-  function agregarEquipo() {
-    equipoCount++;
-    const container = document.getElementById('equiposContainer');
-    let options = '<option value="">-- Seleccionar --</option>';
-    tiposEquipo.forEach(t => { options += '<option value="' + t + '">' + t + '</option>'; });
-    const html = '<div class="equipo-item" id="eq-' + equipoCount + '"><div class="grid grid-cols-1 gap-2"><div><label>Equipo ' + equipoCount + '</label><select class="eq-mod">' + options + '</select></div><div><label>Estado</label><select class="eq-est"><option value="Operativo">Operativo</option><option value="Con Falla">Con Falla</option><option value="Fuera de Servicio">Fuera de Servicio</option><option value="Reemplazado">Reemplazado</option></select></div><div><label>Detalle</label><textarea class="eq-det" rows="2" placeholder="Describe el estado o trabajo realizado..."></textarea></div><div class="grid grid-cols-2 gap-2"><div><label>Repuesto Usado</label><input type="text" class="eq-rep-u" placeholder="Nombre repuesto"></div><div><label>Repuesto Necesario</label><input type="text" class="eq-rep-n" placeholder="Repuesto a pedir"></div></div><button type="button" onclick="eliminarEquipo(' + equipoCount + ')" class="tag-btn bg-red-100 text-red-800 border-red-300">Eliminar Equipo</button></div></div>';
-    container.insertAdjacentHTML('beforeend', html);
-  }
-
-  function eliminarEquipo(id) {
-    const eq = document.getElementById('eq-' + id);
-    if (eq) eq.remove();
-  }
-
-  // PROCESAR FOTO
-  function procesarFoto(input) {
-    const file = input.files[0];
-    if (!file) return;
-    const reader = new FileReader();
-    reader.onload = function(e) {
-      processedImages.push(e.target.result);
-      const preview = document.getElementById('fotosPreview');
-      const img = document.createElement('img');
-      img.src = e.target.result;
-      img.className = 'photo-preview';
-      preview.appendChild(img);
+    window.onload = () => {
+        padT = new SignaturePad(document.getElementById('padT'));
+        padE = new SignaturePad(document.getElementById('padE'));
+        loadDraft();
+        if(document.querySelectorAll('.equipo-item').length === 0) addEquipo();
+        evaluarJerarquia();
+        document.querySelectorAll('.persist').forEach(el => el.addEventListener('input', saveDraft));
     };
-    reader.readAsDataURL(file);
-  // VALIDAR PPM
-  function validarPPM() {
-    const local = document.getElementById('local').value;
-    const ppm = parseInt(document.getElementById('ppm').value) || 0;
-    if (!configLocales[local]) return 'verde';
-    const cfg = configLocales[local];
-    if (ppm >= cfg.ppmMin && ppm <= cfg.ppmMax) return 'verde';
-    if (ppm > 0 && (ppm < cfg.ppmMin || ppm > cfg.ppmMax)) return 'amarillo';
-    return 'rojo';
-  }
 
-  // GENERAR PDF
-  function generarPDF() {
-    const { jsPDF } = window.jspdf;
-    const doc = new jsPDF();
-    const local = document.getElementById('local').value || 'S/N';
-    const ticket = document.getElementById('ticket').value || 'S/N';
-    const tecnico = document.getElementById('tecnico').value || 'S/N';
-    const labor = document.getElementById('labor').value || 'S/N';
-    const viaticos = document.getElementById('viaticos').value || '0';
-    const ppm = document.getElementById('ppm').value || 'S/N';
-    const colorFinal = validarPPM();
-    const encabezado = document.getElementById('statusMsg').innerText;
+    function evaluarJerarquia() {
+        const ppm = parseInt(document.getElementById('ppm').value) || 0;
+        const fallasAgua = [document.getElementById('f_filtrado').value, document.getElementById('f_ablandador').value, document.getElementById('f_osmosis').value].filter(v => v === 'NO OP').length;
+        
+        // 1. Puntaje Agua
+        let waterScore = 0;
+        if (fallasAgua === 1 || (ppm > 110 && document.getElementById('f_filtrado').value !== 'OP')) waterScore = 1;
+        if (ppm > 150) waterScore = 2;
+        if (fallasAgua >= 2 || ppm > 200) waterScore = 3;
 
-    // HEADER
-    doc.setFillColor(245, 130, 32);
-    doc.rect(0, 0, 210, 25, 'F');
-    doc.setFontSize(14);
-    doc.setTextColor(255, 255, 255);
-    doc.setFont('helvetica', 'bold');
-    doc.text('MOSTAZA - INFORME DE SERVICIO', 105, 12, { align: 'center' });
-    doc.setFontSize(9);
-    doc.text('Sistema Elite V9 - Generador de Informes', 105, 19, { align: 'center' });
+        // 2. Puntaje Máquina
+        let machineScore = 0;
+        document.querySelectorAll('.eq-est').forEach(s => {
+            if(s.value === "OPERATIVA CON OBS.") machineScore = Math.max(machineScore, 1);
+            if(s.value === "FUERA DE SERVICIO") machineScore = Math.max(machineScore, 3);
+        });
 
-    // DATOS
-    let y = 32;
-    doc.setFontSize(9);
-    doc.setTextColor(0, 0, 0);
-    doc.setFont('helvetica', 'bold');
-    doc.text('LOCAL: ' + local + ' | TICKET: ' + ticket + ' | FECHA: ' + (new Date()).toLocaleDateString(), 15, y);
-    y += 6;
-    doc.text('TECNICO: ' + tecnico + ' | LABOR: ' + labor + ' | VIATICOS: $' + viaticos, 15, y);
-    y += 6;
-    doc.text('SITUACION: ' + encabezado + ' | PPM: ' + ppm, 15, y);
-    y += 8;
-    doc.setDrawColor(245, 130, 32);
-    doc.setLineWidth(0.5);
-    doc.line(15, y, 195, y);
-    y += 8;
+        // 3. Resultado Final
+        let totalScore = Math.max(waterScore, machineScore);
+        const led = document.getElementById('statusLed');
+        const msg = document.getElementById('statusMsg');
 
-    // EQUIPOS
-    doc.setFont('helvetica', 'bold');
-    doc.setFontSize(10);
-    doc.text('EQUIPOS REVISADOS', 15, y);
-    y += 5;
-    let eqNum = 0;
-    document.querySelectorAll('.equipo-item').forEach((eq, i) => {
-      if (y > 240) { doc.addPage(); y = 20; }
-      eqNum++;
-      const mod = eq.querySelector('.eq-mod').value || 'Sin especificar';
-      const est = eq.querySelector('.eq-est').value || 'S/N';
-      const det = eq.querySelector('.eq-det').value || 'Sin detalles';
-      const repU = eq.querySelector('.eq-rep-u').value || 'Ninguno';
-      const repN = eq.querySelector('.eq-rep-n').value || 'Ninguno';
-      doc.setFont('helvetica', 'bold');
-      doc.setFontSize(9);
-      doc.text(eqNum + '. ' + mod + ' [' + est + ']', 15, y);
-      y += 5;
-      doc.setFont('helvetica', 'normal');
-      const lines = doc.splitTextToSize('Detalle: ' + det, 180);
-      doc.text(lines, 15, y);
-      y += (lines.length * 4) + 2;
-      doc.setFontSize(8);
-      doc.text('Repuestos Usados: ' + repU + ' | Repuestos Necesarios: ' + repN, 15, y);
-      y += 6;
-    });
-    if (eqNum === 0) {
-      doc.text('No se registraron equipos.', 15, y);
-      y += 6;
+        if(totalScore === 0) { colorFinal = "VERDE"; led.className = "h-5 w-5 rounded-full bg-green-500 shadow-[0_0_12px_green]"; msg.innerText = "ESTADO: SISTEMA ÓPTIMO"; }
+        else if(totalScore === 1) { colorFinal = "AMARILLO"; led.className = "h-5 w-5 rounded-full bg-yellow-500 shadow-[0_0_12px_yellow]"; msg.innerText = "ESTADO: PRECAUCIÓN TÉCNICA"; }
+        else if(totalScore === 2) { colorFinal = "NARANJA"; led.className = "h-5 w-5 rounded-full bg-orange-500 shadow-[0_0_12px_orange]"; msg.innerText = "ESTADO: ADVERTENCIA DE RIESGO"; }
+        else { colorFinal = "ROJO"; led.className = "h-5 w-5 rounded-full bg-red-600 shadow-[0_0_12px_red] animate-pulse"; msg.innerText = "ESTADO: CRÍTICO / DAÑO"; }
+        saveDraft();
     }
 
-    // FOTOS
-    if (processedImages.length > 0) {
-      if (y > 200) { doc.addPage(); y = 20; }
-      doc.setFont('helvetica', 'bold');
-      doc.text('EVIDENCIA FOTOGRAFICA', 15, y);
-      y += 5;
-      processedImages.forEach((img, i) => {
-        if (y > 220) { doc.addPage(); y = 20; }
-        try {
-          doc.addImage(img, 'JPEG', 15 + (i % 2) * 95, y, 85, 60);
-          if (i % 2 === 1) y += 65;
-        } catch(e) {}
-      });
-      if (processedImages.length % 2 === 1) y += 65;
+    function addEquipo(val = null) {
+        const div = document.createElement('div');
+        div.className = "card equipo-item border-l-8 border-l-orange-500";
+        div.innerHTML = `
+            <div class="flex justify-between items-center mb-3">
+                <input type="text" placeholder="MODELO Y N/S" class="persist-dyn eq-mod font-black text-orange-600 w-2/3 border-none p-0 bg-transparent uppercase" value="${val?.mod || ''}">
+                <button type="button" onclick="this.closest('.equipo-item').remove(); evaluarJerarquia();" class="text-red-500 font-bold text-[9px] uppercase">Eliminar</button>
+            </div>
+            <textarea placeholder="TRABAJO REALIZADO..." class="persist-dyn eq-det text-xs mb-2" rows="2">${val?.det || ''}</textarea>
+            <div class="flex flex-wrap gap-1 mb-3">${TAREAS.map(t => `<span class="tag-btn" onclick="addTask(this, '${t}')">${t}</span>`).join('')}</div>
+            <div class="space-y-2">
+                <input type="text" placeholder="REPUESTOS UTILIZADOS" class="persist-dyn eq-rep-u text-[10px]" value="${val?.repU || ''}">
+                <input type="text" placeholder="REPUESTOS NECESARIOS (PEDIDO)" class="persist-dyn eq-rep-n text-[10px]" value="${val?.repN || ''}">
+                <select class="persist-dyn eq-est font-bold text-xs uppercase" onchange="evaluarJerarquia()">
+                    <option value="OPERATIVA" ${val?.est==='OPERATIVA'?'selected':''}>OPERATIVA</option>
+                    <option value="OPERATIVA CON OBS." ${val?.est==='OPERATIVA CON OBS.'?'selected':''}>OPERATIVA CON OBS.</option>
+                    <option value="FUERA DE SERVICIO" ${val?.est==='FUERA DE SERVICIO'?'selected':''}>FUERA DE SERVICIO</option>
+                </select>
+            </div>
+        `;
+        document.getElementById('equiposGrid').appendChild(div);
+        div.querySelectorAll('.persist-dyn').forEach(el => el.addEventListener('input', saveDraft));
     }
 
-    // FIRMA
-    if (y > 180) { doc.addPage(); y = 20; }
-    doc.setFont('helvetica', 'bold');
-    doc.text('VALIDACION DE CONFORMIDAD', 15, y);
-    y += 8;
-    doc.setFont('helvetica', 'normal');
-    doc.text('Nombre del Encargado: ' + (document.getElementById('nombreEncargado').value || 'S/N'), 15, y);
-    y += 12;
-    try {
-      const firmaData = pad.toDataURL('PNG');
-      doc.addImage(firmaData, 'PNG', 15, y, 60, 30);
-      doc.text('(Firma del Tecnico)', 15, y + 32);
-    } catch(e) { doc.text('[Firma no disponible]', 15, y); }
-    doc.text('Encargado del Local', 100, y + 32);
+    function addTask(btn, t) { const area = btn.closest('.equipo-item').querySelector('textarea'); area.value += (area.value ? ', ' : '') + t; saveDraft(); }
 
-    // FOOTER
-    doc.setFontSize(7);
-    doc.setTextColor(150, 150, 150);
-    doc.text('Documento generado automaticamente - Sistema Elite V9 Mostaza', 105, 285, { align: 'center' });
-
-    const fileName = 'Mostaza_' + local + '_Ticket_' + ticket + '_' + (new Date()).toISOString().slice(0,10) + '.pdf';
-    doc.save(fileName);
-
-    const led = document.getElementById('statusLed');
-    const statusMsg = document.getElementById('statusMsg');
-    led.className = 'h-5 w-5 rounded-full status-' + colorFinal + ' led-pulse';
-    statusMsg.textContent = 'Estado: ' + (colorFinal === 'verde' ? 'PPM OK' : 'PPM Fuera de Rango');
-    statusMsg.className = 'text-[9px] font-bold uppercase text-' + (colorFinal === 'verde' ? 'green' : colorFinal === 'amarillo' ? 'yellow' : 'red') + '-400';
-  }
-
-  // ENVIAR POR WHATSAPP
-  function sendWA() {
-    const local = document.getElementById('local').value || 'S/N';
-    const ticket = document.getElementById('ticket').value || 'S/N';
-    const colorFinal = validarPPM();
-    const baliza = (colorFinal !== 'verde') ? ' [ALERTA PPM]' : '';
-    const tecnico = document.getElementById('tecnico').value || 'S/N';
-    const encabezado = document.getElementById('statusMsg').innerText;
-    const msg = 'MOSTAZA' + baliza + '%0A-- TICKET: ' + ticket + '%0A' +
-      'Tecnico: ' + tecnico + '%0A' +
-      'Estado: ' + encabezado + '%0A' +
-      'A Favor de revisar informe adjunto.';
-    window.open('https://wa.me/?text=' + msg, '_blank');
-  }
-
-  // GUARDAR BORRADOR
-  function guardarBorrador() {
-    const data = {
-      local: document.getElementById('local').value,
-      ticket: document.getElementById('ticket').value,
-      tecnico: document.getElementById('tecnico').value,
-      labor: document.getElementById('labor').value,
-      viaticos: document.getElementById('viaticos').value,
-      ppm: document.getElementById('ppm').value,
-      nombreEncargado: document.getElementById('nombreEncargado').value
-    };
-    const equipos = [];
-    document.querySelectorAll('.equipo-item').forEach(eq => {
-      equipos.push({
-        mod: eq.querySelector('.eq-mod').value,
-        est: eq.querySelector('.eq-est').value,
-        det: eq.querySelector('.eq-det').value,
-        repU: eq.querySelector('.eq-rep-u').value,
-        repN: eq.querySelector('.eq-rep-n').value
-      });
-    });
-    data.equipos = equipos;
-    data.equipoCount = equipoCount;
-    localStorage.setItem('borradorElite', JSON.stringify(data));
-    alert('Borrador guardado correctamente.');
-  }
-
-  // CARGAR BORRADOR
-  function cargarBorrador() {
-    if (localStorage.getItem('darkMode') === 'true') {
-      document.body.classList.add('dark-mode');
+    function saveDraft() {
+        const data = {
+            c: { l: document.getElementById('local').value, t: document.getElementById('ticket').value, tec: document.getElementById('tecnico').value, p: document.getElementById('ppm').value, f: document.getElementById('f_filtrado').value, a: document.getElementById('f_ablandador').value, o: document.getElementById('f_osmosis').value, lab: document.getElementById('labor').value, via: document.getElementById('viaticos').value, enc: document.getElementById('nombreEncargado').value },
+            e: Array.from(document.querySelectorAll('.equipo-item')).map(eq => ({ mod: eq.querySelector('.eq-mod').value, det: eq.querySelector('.eq-det').value, repU: eq.querySelector('.eq-rep-u').value, repN: eq.querySelector('.eq-rep-n').value, est: eq.querySelector('.eq-est').value }))
+        };
+        localStorage.setItem('mostaza_elite_v8', JSON.stringify(data));
     }
-    const data = JSON.parse(localStorage.getItem('borradorElite') || '{}');
-    if (Object.keys(data).length === 0) return;
-    document.getElementById('local').value = data.local || '';
-    document.getElementById('ticket').value = data.ticket || '';
-    document.getElementById('tecnico').value = data.tecnico || '';
-    document.getElementById('labor').value = data.labor || '';
-    document.getElementById('viaticos').value = data.viaticos || '';
-    document.getElementById('ppm').value = data.ppm || '';
-    document.getElementById('nombreEncargado').value = data.nombreEncargado || '';
-    loadConfig();
-    if (data.equipos && data.equipos.length > 0) {
-      data.equipos.forEach((eq, i) => {
-        equipoCount = i + 1;
-        agregarEquipo();
-        const lastEq = document.querySelector('.equipo-item:last-child');
-        if (lastEq) {
-          lastEq.querySelector('.eq-mod').value = eq.mod || '';
-          lastEq.querySelector('.eq-est').value = eq.est || '';
-          lastEq.querySelector('.eq-det').value = eq.det || '';
-          lastEq.querySelector('.eq-rep-u').value = eq.repU || '';
-          lastEq.querySelector('.eq-rep-n').value = eq.repN || '';
+
+    function loadDraft() {
+        const raw = localStorage.getItem('mostaza_elite_v8'); if (!raw) return;
+        const d = JSON.parse(raw);
+        document.getElementById('local').value = d.c.l; document.getElementById('ticket').value = d.c.t; document.getElementById('tecnico').value = d.c.tec; document.getElementById('ppm').value = d.c.p; document.getElementById('f_filtrado').value = d.c.f; document.getElementById('f_ablandador').value = d.c.a; document.getElementById('f_osmosis').value = d.c.o; document.getElementById('labor').value = d.c.lab || ''; document.getElementById('viaticos').value = d.c.via || ''; document.getElementById('nombreEncargado').value = d.c.enc || '';
+        if (d.e && d.e.length > 0) {
+            document.getElementById('equiposGrid').innerHTML = '';
+            d.e.forEach(eq => addEquipo(eq));
         }
-      });
     }
-  }
 
-  // RESET TOTAL
-  function resetAll() {
-    if (confirm('BORRAR TODOS LOS DATOS?')) {
-      localStorage.removeItem('borradorElite');
-      location.reload();
+    document.getElementById('fotoInput').onchange = async (e) => {
+        const files = Array.from(e.target.files).slice(0, 4); processedImages = [];
+        const prev = document.getElementById('fotoPreview'); prev.innerHTML = "<p class='col-span-4 text-[9px] animate-pulse'>CARGANDO EVIDENCIA...</p>";
+        for (const f of files) {
+            const data = await new Promise(res => {
+                const r = new FileReader(); r.onload = (ev) => {
+                    const img = new Image(); img.onload = () => {
+                        const c = document.createElement('canvas'); const s = 800/img.width; c.width = 800; c.height = img.height*s;
+                        c.getContext('2d').drawImage(img, 0,0,800,c.height); res(c.toDataURL('image/jpeg', 0.6));
+                    }; img.src = ev.target.result;
+                }; r.readAsDataURL(f);
+            });
+            processedImages.push(data);
+        }
+        prev.innerHTML = '';
+        processedImages.forEach(img => { const d = document.createElement('div'); d.className = "h-12 border-2 border-orange-500 rounded bg-cover bg-center"; d.style.backgroundImage = `url(${img})`; prev.appendChild(d); });
+    };
+
+    function generarPDF() {
+        if(padT.isEmpty() || padE.isEmpty() || !document.getElementById('nombreEncargado').value) return alert("⚠️ ERROR: FALTAN FIRMAS O NOMBRE DEL ENCARGADO");
+        const { jsPDF } = window.jspdf; const doc = new jsPDF();
+        const local = document.getElementById('local').value || "S/N";
+
+        // Estética y Alertas
+        if(colorFinal === "ROJO") { doc.setFillColor(200,0,0); doc.rect(0,0,210,25,'F'); doc.setTextColor(255); doc.setFontSize(14); doc.text("ALERTA CRÍTICA: INFORME FUERA DE RANGO", 105, 15, {align:'center'}); }
+        else { doc.setFillColor(26,26,27); doc.rect(0,0,210,20,'F'); doc.setTextColor(245,130,32); doc.setFontSize(14); doc.text("INFORME TÉCNICO ELITE - MOSTAZA", 15, 13); }
+        
+        doc.setTextColor(0); doc.setFontSize(9);
+        doc.text(`LOCAL: ${local} | TICKET: ${document.getElementById('ticket').value} | FECHA: ${new Date().toLocaleDateString()}`, 15, 30);
+        doc.text(`TÉCNICO: ${document.getElementById('tecnico').value} | LABOR: ${document.getElementById('labor').value} hs | VIÁTICOS: $${document.getElementById('viaticos').value}`, 15, 36);
+        doc.setFont("helvetica", "bold"); doc.text(`SITUACIÓN GENERAL: ${document.getElementById('statusMsg').innerText} (${document.getElementById('ppm').value} PPM)`, 15, 42); doc.setFont("helvetica", "normal");
+
+        let y = 55;
+        document.querySelectorAll('.equipo-item').forEach((eq, i) => {
+            if(y > 240) { doc.addPage(); y = 20; }
+            doc.setFont("helvetica", "bold"); doc.text(`${i+1}. ${eq.querySelector('.eq-mod').value} [${eq.querySelector('.eq-est').value}]`, 15, y);
+            doc.setFont("helvetica", "normal"); const lines = doc.splitTextToSize(eq.querySelector('.eq-det').value, 180);
+            doc.text(lines, 15, y+5); y += (lines.length * 5) + 10;
+            doc.setFontSize(8); doc.text(`UTILIZADOS: ${eq.querySelector('.eq-rep-u').value}`, 15, y); y += 4;
+            doc.text(`NECESARIOS: ${eq.querySelector('.eq-rep-n').value}`, 15, y); y += 8;
+            doc.setFontSize(9);
+        });
+
+        if(processedImages.length > 0) {
+            doc.addPage(); doc.text("EVIDENCIA FOTOGRÁFICA", 15, 20);
+            processedImages.forEach((img, i) => doc.addImage(img, 'JPEG', 15+(i%2*95), 30+(Math.floor(i/2)*75), 90, 70));
+        }
+        
+        doc.addPage(); doc.text("VALIDACIÓN DE CONFORMIDAD", 15, 20);
+        doc.addImage(padT.toDataURL(),'PNG',15,35,60,30); doc.addImage(padE.toDataURL(),'PNG',120,35,60,30);
+        doc.text("FIRMA TÉCNICO", 15, 70); doc.text(`ENCARGADO: ${document.getElementById('nombreEncargado').value}`, 120, 70);
+        doc.save(`Mostaza_${local}_${document.getElementById('ticket').value}.pdf`);
     }
-  }
+
+    function sendWA() {
+        const local = document.getElementById('local').value || "S/N";
+        const ticket = document.getElementById('ticket').value || "S/N";
+        const baliza = (colorFinal !== "VERDE") ? "⚠️ " : "";
+        const msg = `*${baliza}${local} - TICKET: ${ticket}*%0A*Técnico:* ${document.getElementById('tecnico').value}%0A*Estado:* ${document.getElementById('statusMsg').innerText}%0A%0A_Favor de revisar informe adjunto._`;
+        window.open(`https://wa.me/?text=${msg}`, '_blank');
+    }
+
+    function resetAll() { if(confirm("¿BORRAR TODOS LOS DATOS?")) { localStorage.clear(); location.reload(); } }
 </script>
 </body>
 </html>
-  }
