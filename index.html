@@ -50,7 +50,7 @@
                         <option value="Ana Guerrero">ANA GUERRERO</option>
                     </select>
                 </div>
-                <div><label>Labor (Tiempo)</label><input type="time" id="labor" class="persist"></div>
+                <div><label>Labor (Horas)</label><input type="number" id="labor" class="persist" placeholder="EJ: 5" min="1" step="1"></div>
                 <div><label>Viáticos (ARS $)</label><input type="number" id="viaticos" class="persist" placeholder="0.00"></div>
             </div>
         </div>
@@ -217,7 +217,7 @@
         
         doc.setTextColor(0); doc.setFontSize(9);
         doc.text(`LOCAL: ${local} | TICKET: ${document.getElementById('ticket').value} | FECHA: ${new Date().toLocaleDateString()}`, 15, 30);
-        doc.text(`TÉCNICO: ${document.getElementById('tecnico').value} | LABOR: ${document.getElementById('labor').value} hs | VIÁTICOS: $${document.getElementById('viaticos').value}`, 15, 36);
+        doc.text(`TÉCNICO: ${document.getElementById('tecnico').value} | LABOR: ${document.getElementById('labor').value} HORAS | VIÁTICOS: $${document.getElementById('viaticos').value}`, 15, 36);
         doc.setFont("helvetica", "bold"); doc.text(`SITUACIÓN GENERAL: ${document.getElementById('statusMsg').innerText} (${document.getElementById('ppm').value} PPM)`, 15, 42); doc.setFont("helvetica", "normal");
 
         let y = 55;
