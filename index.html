@@ -77,10 +77,10 @@
         </div>
 
         <div class="card">
-            <h3 class="text-xs font-black uppercase mb-4 text-center">
-                4. Cierre y Validación de Servicio
-                <span id="lockBadge" class="hidden ml-2 bg-red-600 text-white px-2 py-0.5 rounded-full text-[8px] animate-pulse">SELLADO</span>
-            </h3>
+            <div class="flex justify-between items-center mb-4">
+                <h3 class="text-xs font-black uppercase text-center w-full">4. Cierre y Validación de Servicio</h3>
+                <span id="lockBadge" class="hidden bg-red-600 text-white text-[8px] px-2 py-1 rounded animate-pulse">SELLADO</span>
+            </div>
             <div class="grid grid-cols-1 gap-6">
                 <div class="text-center">
                     <label>Firma Técnico</label>
@@ -226,8 +226,16 @@
     };
 
     function generarPDF() {
-        if(padT.isEmpty() || padE.isEmpty() || !document.getElementById('nombreEncargado').value) return alert("⚠️ ERROR: FALTAN FIRMAS O NOMBRE DEL ENCARGADO");
-        const { jsPDF } = window.jspdf; const doc = new jsPDF();
+        // Validación de Integridad
+        if(padT.isEmpty() || padE.isEmpty() || !document.getElementById('nombreEncargado').value) {
+            return alert("⚠️ ERROR DE AUDITORÍA: El reporte no es válido sin firmas y nombre del encargado.");
+        }
+
+        // Ejecutar Bloqueo (Opción 1)
+        if(!isLocked) lockSignatures();
+
+        const { jsPDF } = window.jspdf; 
+        const doc = new jsPDF();
         const local = document.getElementById('local').value || "S/N";
 
         // Estética y Alertas
