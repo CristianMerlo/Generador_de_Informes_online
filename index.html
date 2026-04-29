@@ -3,23 +3,22 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>SISTEMA ELITE V8 - FULL INTEGRATED</title>
+    <title>SISTEMA ELITE V9.4 - MOSTAZA</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/signature_pad@4.0.0/dist/signature_pad.umd.min.js"></script>
     <style>
         :root { --mostaza: #F58220; --dark: #1A1A1B; }
         body { background-color: #f3f4f6; font-family: sans-serif; }
-        body.dark-mode { background-color: #000; color: #fff; }
         .card { background: white; border: 2px solid #d1d5db; border-radius: 8px; padding: 1rem; margin-bottom: 1rem; }
-        body.dark-mode .card { background: #111; border-color: #333; }
         label { font-size: 10px; font-weight: 900; text-transform: uppercase; color: #6b7280; display: block; margin-bottom: 4px; }
         input, select, textarea { border: 2px solid #9ca3af !important; padding: 12px !important; font-size: 16px !important; width: 100%; border-radius: 4px; background: #fff; color: #000; }
-        body.dark-mode input, body.dark-mode select, body.dark-mode textarea { background: #222; color: #fff; border-color: #444 !important; }
         .tag-btn { background: #e5e7eb; border: 1px solid #9ca3af; padding: 6px 10px; border-radius: 4px; font-size: 11px; font-weight: bold; cursor: pointer; color: #000; }
+        .tag-btn:active { background: #F58220; color: white; }
         .signature-box { border: 2px solid #000; background: #fff; border-radius: 4px; overflow: hidden; }
         .led-pulse { animation: pulse 2s infinite; }
         @keyframes pulse { 0% { opacity: 1; } 50% { opacity: 0.5; } 100% { opacity: 1; } }
+        input:disabled, select:disabled, textarea:disabled { background: #f9fafb !important; color: #9ca3af !important; }
     </style>
 </head>
 <body class="pb-24">
@@ -28,8 +27,8 @@
     <div class="flex items-center gap-3">
         <div id="statusLed" class="h-5 w-5 rounded-full bg-gray-500 led-pulse"></div>
         <div>
-            <h1 class="text-lg font-bold uppercase leading-none">Mostaza <span class="text-[#F58220]">Elite V8</span></h1>
-            <p id="statusMsg" class="text-[9px] font-bold uppercase text-gray-400 text-orange-400">Estado: Verificando...</p>
+            <h1 class="text-lg font-bold uppercase leading-none">Mostaza <span class="text-[#F58220]">Elite V9.4</span></h1>
+            <p id="statusMsg" class="text-[9px] font-bold uppercase text-orange-400">Estado: Verificando...</p>
         </div>
     </div>
     <button onclick="resetAll()" class="bg-red-700 p-2 rounded text-[10px] font-bold uppercase text-white">Reset</button>
@@ -50,13 +49,13 @@
                         <option value="Ana Guerrero">ANA GUERRERO</option>
                     </select>
                 </div>
-                <div><label>Labor (Horas)</label><input type="number" id="labor" class="persist" placeholder="EJ: 5" min="1" step="1"></div>
+                <div><label>Labor (Horas)</label><input type="number" id="labor" class="persist" placeholder="EJ: 5"></div>
                 <div><label>Viáticos (ARS $)</label><input type="number" id="viaticos" class="persist" placeholder="0.00"></div>
             </div>
         </div>
 
-        <div class="card">
-            <h3 class="text-xs font-black uppercase text-orange-500 mb-3 border-b">2. Calidad de Agua (Prioridad Alta)</h3>
+        <div class="card border-l-8 border-l-blue-500">
+            <h3 class="text-xs font-black uppercase text-blue-600 mb-3 border-b">2. Calidad de Agua</h3>
             <div class="space-y-4">
                 <div><label>PPM Post-Filtrado</label><input type="number" id="ppm" class="persist" oninput="evaluarJerarquia()"></div>
                 <div class="grid grid-cols-3 gap-2">
@@ -72,33 +71,33 @@
         <button type="button" onclick="addEquipo()" class="w-full mb-6 py-3 border-2 border-dashed border-gray-400 font-bold text-gray-400 uppercase text-xs">+ Añadir Equipo</button>
 
         <div class="card">
-            <h3 class="text-xs font-black uppercase mb-2">3. Registro Fotográfico</h3>
+            <h3 class="text-xs font-black uppercase mb-2 text-orange-500 border-b">4. Registro Fotográfico</h3>
             <input type="file" id="fotoInput" accept="image/*" multiple class="text-xs mb-2">
             <div id="fotoPreview" class="grid grid-cols-4 gap-2"></div>
         </div>
 
         <div class="card">
-            <div class="flex justify-between items-center mb-4">
-                <h3 class="text-xs font-black uppercase text-center w-full">4. Cierre y Validación de Servicio</h3>
+            <div class="flex justify-between items-center mb-4 border-b">
+                <h3 class="text-xs font-black uppercase text-center w-full">5. Cierre y Validación</h3>
                 <span id="lockBadge" class="hidden bg-red-600 text-white text-[8px] px-2 py-1 rounded animate-pulse">SELLADO</span>
             </div>
             <div class="grid grid-cols-1 gap-6">
                 <div class="text-center">
                     <label>Firma Técnico</label>
                     <div class="signature-box mx-auto"><canvas id="padT" width="350" height="150" class="w-full h-auto"></canvas></div>
-                    <button type="button" onclick="padT.clear()" class="text-[9px] underline uppercase mt-1">Limpiar</button>
+                    <button type="button" id="btnCT" onclick="padT.clear()" class="text-[9px] underline uppercase mt-1">Limpiar</button>
                 </div>
                 <div class="text-center border-t pt-4">
                     <label>Firma Encargado Local</label>
                     <div class="signature-box mx-auto mb-2"><canvas id="padE" width="350" height="150" class="w-full h-auto"></canvas></div>
                     <input type="text" id="nombreEncargado" class="persist text-sm uppercase text-center font-bold" placeholder="NOMBRE COMPLETO ENCARGADO">
-                    <button type="button" onclick="padE.clear()" class="text-[9px] underline uppercase mt-1">Limpiar Firma</button>
+                    <button type="button" id="btnCE" onclick="padE.clear()" class="text-[9px] underline uppercase mt-1">Limpiar Firma</button>
                 </div>
             </div>
         </div>
 
         <div class="flex flex-col gap-3">
-            <button type="button" onclick="generarPDF()" class="bg-[#F58220] text-white py-4 text-xl font-black uppercase rounded shadow-xl border-b-4 border-orange-800">Generar Informe PDF</button>
+            <button type="button" onclick="generarPDF()" class="bg-[#F58220] text-white py-4 text-xl font-black uppercase rounded shadow-xl border-b-4 border-orange-800 active:translate-y-1">Generar Informe PDF</button>
             <button type="button" onclick="sendWA()" class="bg-[#25D366] text-white py-3 font-bold uppercase rounded flex items-center justify-center gap-2"><span>Enviar WhatsApp</span></button>
         </div>
     </form>
@@ -108,59 +107,52 @@
     let processedImages = [];
     let padT, padE;
     let colorFinal = "VERDE";
-    let isLocked = false; // Nueva bandera de seguridad
+    let isLocked = false;
     const TAREAS = ["Limpieza grupo", "Cambio juntas", "Calibración", "Descalcificación", "Revisión eléctrica"];
 
     window.onload = () => {
-        // Inicialización de Pads con manejo de errores
         const canvasT = document.getElementById('padT');
         const canvasE = document.getElementById('padE');
         padT = new SignaturePad(canvasT, { backgroundColor: 'rgb(255, 255, 255)' });
         padE = new SignaturePad(canvasE, { backgroundColor: 'rgb(255, 255, 255)' });
-        
         loadDraft();
         if(document.querySelectorAll('.equipo-item').length === 0) addEquipo();
         evaluarJerarquia();
-        
-        // Listeners de persistencia
         document.querySelectorAll('.persist').forEach(el => el.addEventListener('input', saveDraft));
     };
 
     function lockSignatures() {
         isLocked = true;
-        padT.off(); // Desactiva la edición
-        padE.off();
+        padT.off(); padE.off();
         document.getElementById('nombreEncargado').disabled = true;
         document.getElementById('lockBadge').classList.remove('hidden');
-        console.log("AUDITORÍA: Firmas selladas para integridad legal.");
+        document.getElementById('btnCT').classList.add('hidden');
+        document.getElementById('btnCE').classList.add('hidden');
     }
 
     function evaluarJerarquia() {
         const ppm = parseInt(document.getElementById('ppm').value) || 0;
         const fallasAgua = [document.getElementById('f_filtrado').value, document.getElementById('f_ablandador').value, document.getElementById('f_osmosis').value].filter(v => v === 'NO OP').length;
         
-        // 1. Puntaje Agua
         let waterScore = 0;
         if (fallasAgua === 1 || (ppm > 110 && document.getElementById('f_filtrado').value !== 'OP')) waterScore = 1;
         if (ppm > 150) waterScore = 2;
         if (fallasAgua >= 2 || ppm > 200) waterScore = 3;
 
-        // 2. Puntaje Máquina
         let machineScore = 0;
         document.querySelectorAll('.eq-est').forEach(s => {
             if(s.value === "OPERATIVA CON OBS.") machineScore = Math.max(machineScore, 1);
             if(s.value === "FUERA DE SERVICIO") machineScore = Math.max(machineScore, 3);
         });
 
-        // 3. Resultado Final
         let totalScore = Math.max(waterScore, machineScore);
         const led = document.getElementById('statusLed');
         const msg = document.getElementById('statusMsg');
 
-        if(totalScore === 0) { colorFinal = "VERDE"; led.className = "h-5 w-5 rounded-full bg-green-500 shadow-[0_0_12px_green]"; msg.innerText = "ESTADO: SISTEMA ÓPTIMO"; }
-        else if(totalScore === 1) { colorFinal = "AMARILLO"; led.className = "h-5 w-5 rounded-full bg-yellow-500 shadow-[0_0_12px_yellow]"; msg.innerText = "ESTADO: PRECAUCIÓN TÉCNICA"; }
-        else if(totalScore === 2) { colorFinal = "NARANJA"; led.className = "h-5 w-5 rounded-full bg-orange-500 shadow-[0_0_12px_orange]"; msg.innerText = "ESTADO: ADVERTENCIA DE RIESGO"; }
-        else { colorFinal = "ROJO"; led.className = "h-5 w-5 rounded-full bg-red-600 shadow-[0_0_12px_red] animate-pulse"; msg.innerText = "ESTADO: CRÍTICO / DAÑO"; }
+        if(totalScore === 0) { colorFinal = "VERDE"; led.className = "h-5 w-5 rounded-full bg-green-500 shadow-[0_0_12px_green]"; msg.innerText = "ESTADO: ÓPTIMO"; }
+        else if(totalScore === 1) { colorFinal = "AMARILLO"; led.className = "h-5 w-5 rounded-full bg-yellow-500 shadow-[0_0_12px_yellow]"; msg.innerText = "ESTADO: PRECAUCIÓN"; }
+        else if(totalScore === 2) { colorFinal = "NARANJA"; led.className = "h-5 w-5 rounded-full bg-orange-500 shadow-[0_0_12px_orange]"; msg.innerText = "ESTADO: ADVERTENCIA"; }
+        else { colorFinal = "ROJO"; led.className = "h-5 w-5 rounded-full bg-red-600 shadow-[0_0_12px_red] animate-pulse"; msg.innerText = "ESTADO: CRÍTICO"; }
         saveDraft();
     }
 
@@ -170,8 +162,12 @@
         div.innerHTML = `
             <div class="flex justify-between items-center mb-3 gap-2">
                 <div class="w-7/12">
-                    <label class="text-[8px]">Modelo del Equipo</label>
-                    <input type="text" placeholder="EJ: MAGISTER" class="persist-dyn eq-mod font-black text-orange-600 border-none p-0 bg-transparent uppercase text-sm" value="${val?.mod || ''}">
+                    <label class="text-[8px]">Equipo (Seleccionar)</label>
+                    <select class="persist-dyn eq-mod font-black text-orange-600 border-none p-0 bg-transparent uppercase text-sm">
+                        <option value="Cimbali" ${val?.mod==='Cimbali'?'selected':''}>CIMBALI</option>
+                        <option value="Melitta" ${val?.mod==='Melitta'?'selected':''}>MELITTA</option>
+                        <option value="Otros" ${val?.mod==='Otros'?'selected':''}>OTROS</option>
+                    </select>
                 </div>
                 <div class="w-4/12 border-l pl-2">
                     <label class="text-[8px]">N/Serie</label>
@@ -183,7 +179,7 @@
             <div class="flex flex-wrap gap-1 mb-3">${TAREAS.map(t => `<span class="tag-btn" onclick="addTask(this, '${t}')">${t}</span>`).join('')}</div>
             <div class="space-y-2">
                 <input type="text" placeholder="REPUESTOS UTILIZADOS" class="persist-dyn eq-rep-u text-[10px]" value="${val?.repU || ''}">
-                <input type="text" placeholder="REPUESTOS NECESARIOS (PEDIDO)" class="persist-dyn eq-rep-n text-[10px]" value="${val?.repN || ''}">
+                <input type="text" placeholder="REPUESTOS NECESARIOS" class="persist-dyn eq-rep-n text-[10px]" value="${val?.repN || ''}">
                 <select class="persist-dyn eq-est font-bold text-xs uppercase" onchange="evaluarJerarquia()">
                     <option value="OPERATIVA" ${val?.est==='OPERATIVA'?'selected':''}>OPERATIVA</option>
                     <option value="OPERATIVA CON OBS." ${val?.est==='OPERATIVA CON OBS.'?'selected':''}>OPERATIVA CON OBS.</option>
@@ -200,37 +196,27 @@
     function saveDraft() {
         const data = {
             c: { l: document.getElementById('local').value, t: document.getElementById('ticket').value, tec: document.getElementById('tecnico').value, p: document.getElementById('ppm').value, f: document.getElementById('f_filtrado').value, a: document.getElementById('f_ablandador').value, o: document.getElementById('f_osmosis').value, lab: document.getElementById('labor').value, via: document.getElementById('viaticos').value, enc: document.getElementById('nombreEncargado').value },
-            e: Array.from(document.querySelectorAll('.equipo-item')).map(eq => ({ 
-                mod: eq.querySelector('.eq-mod').value, 
-                sn: eq.querySelector('.eq-sn').value, 
-                det: eq.querySelector('.eq-det').value, 
-                repU: eq.querySelector('.eq-rep-u').value, 
-                repN: eq.querySelector('.eq-rep-n').value, 
-                est: eq.querySelector('.eq-est').value 
-            }))
+            e: Array.from(document.querySelectorAll('.equipo-item')).map(eq => ({ mod: eq.querySelector('.eq-mod').value, sn: eq.querySelector('.eq-sn').value, det: eq.querySelector('.eq-det').value, repU: eq.querySelector('.eq-rep-u').value, repN: eq.querySelector('.eq-rep-n').value, est: eq.querySelector('.eq-est').value }))
         };
-        localStorage.setItem('mostaza_elite_v8', JSON.stringify(data));
+        localStorage.setItem('mostaza_elite_v94', JSON.stringify(data));
     }
 
     function loadDraft() {
-        const raw = localStorage.getItem('mostaza_elite_v8'); if (!raw) return;
+        const raw = localStorage.getItem('mostaza_elite_v94'); if (!raw) return;
         const d = JSON.parse(raw);
-        document.getElementById('local').value = d.c.l; document.getElementById('ticket').value = d.c.t; document.getElementById('tecnico').value = d.c.tec; document.getElementById('ppm').value = d.c.p; document.getElementById('f_filtrado').value = d.c.f; document.getElementById('f_ablandador').value = d.c.a; document.getElementById('f_osmosis').value = d.c.o; document.getElementById('labor').value = d.c.lab || ''; document.getElementById('viaticos').value = d.c.via || ''; document.getElementById('nombreEncargado').value = d.c.enc || '';
-        if (d.e && d.e.length > 0) {
-            document.getElementById('equiposGrid').innerHTML = '';
-            d.e.forEach(eq => addEquipo(eq));
-        }
+        document.getElementById('local').value = d.c.l || ''; document.getElementById('ticket').value = d.c.t || ''; document.getElementById('tecnico').value = d.c.tec || 'Fernando Soria'; document.getElementById('ppm').value = d.c.p || ''; document.getElementById('f_filtrado').value = d.c.f || 'OP'; document.getElementById('f_ablandador').value = d.c.a || 'OP'; document.getElementById('f_osmosis').value = d.c.o || 'N/A'; document.getElementById('labor').value = d.c.lab || ''; document.getElementById('viaticos').value = d.c.via || ''; document.getElementById('nombreEncargado').value = d.c.enc || '';
+        if (d.e && d.e.length > 0) { document.getElementById('equiposGrid').innerHTML = ''; d.e.forEach(eq => addEquipo(eq)); }
     }
 
     document.getElementById('fotoInput').onchange = async (e) => {
         const files = Array.from(e.target.files).slice(0, 4); processedImages = [];
-        const prev = document.getElementById('fotoPreview'); prev.innerHTML = "<p class='col-span-4 text-[9px] animate-pulse'>CARGANDO EVIDENCIA...</p>";
+        const prev = document.getElementById('fotoPreview'); prev.innerHTML = "<p class='col-span-4 text-[9px] animate-pulse uppercase'>Procesando...</p>";
         for (const f of files) {
             const data = await new Promise(res => {
                 const r = new FileReader(); r.onload = (ev) => {
                     const img = new Image(); img.onload = () => {
                         const c = document.createElement('canvas'); const s = 800/img.width; c.width = 800; c.height = img.height*s;
-                        c.getContext('2d').drawImage(img, 0,0,800,c.height); res(c.toDataURL('image/jpeg', 0.6));
+                        c.getContext('2d').drawImage(img, 0,0,800,c.height); res(c.toDataURL('image/jpeg', 0.7));
                     }; img.src = ev.target.result;
                 }; r.readAsDataURL(f);
             });
@@ -241,38 +227,26 @@
     };
 
     function generarPDF() {
-        // Validación de Integridad
-        if(padT.isEmpty() || padE.isEmpty() || !document.getElementById('nombreEncargado').value) {
-            return alert("⚠️ ERROR DE AUDITORÍA: El reporte no es válido sin firmas y nombre del encargado.");
-        }
-
-        // Ejecutar Bloqueo (Opción 1)
+        if(padT.isEmpty() || padE.isEmpty() || !document.getElementById('nombreEncargado').value) return alert("FALTAN DATOS O FIRMAS");
         if(!isLocked) lockSignatures();
+        const { jsPDF } = window.jspdf; const doc = new jsPDF();
+        const local = (document.getElementById('local').value || "S/N").toUpperCase();
 
-        const { jsPDF } = window.jspdf; 
-        const doc = new jsPDF();
-        const local = document.getElementById('local').value || "S/N";
-
-        // Estética y Alertas
-        if(colorFinal === "ROJO") { doc.setFillColor(200,0,0); doc.rect(0,0,210,25,'F'); doc.setTextColor(255); doc.setFontSize(14); doc.text("ALERTA CRÍTICA: INFORME FUERA DE RANGO", 105, 15, {align:'center'}); }
-        else { doc.setFillColor(26,26,27); doc.rect(0,0,210,20,'F'); doc.setTextColor(245,130,32); doc.setFontSize(14); doc.text("INFORME TÉCNICO ELITE - MOSTAZA", 15, 13); }
+        if(colorFinal === "ROJO") { doc.setFillColor(200,0,0); doc.rect(0,0,210,25,'F'); doc.setTextColor(255); doc.setFontSize(14); doc.text("ALERTA CRÍTICA: REVISAR PARÁMETROS", 105, 15, {align:'center'}); }
+        else { doc.setFillColor(26,26,27); doc.rect(0,0,210,22,'F'); doc.setTextColor(245,130,32); doc.setFontSize(14); doc.text("INFORME TÉCNICO ELITE - MOSTAZA", 15, 14); }
         
         doc.setTextColor(0); doc.setFontSize(9);
-        doc.text(`LOCAL: ${local} | TICKET: ${document.getElementById('ticket').value} | FECHA: ${new Date().toLocaleDateString()}`, 15, 30);
-        doc.text(`TÉCNICO: ${document.getElementById('tecnico').value} | LABOR: ${document.getElementById('labor').value} HORAS | VIÁTICOS: $${document.getElementById('viaticos').value}`, 15, 36);
-        doc.setFont("helvetica", "bold"); doc.text(`SITUACIÓN GENERAL: ${document.getElementById('statusMsg').innerText} (${document.getElementById('ppm').value} PPM)`, 15, 42); doc.setFont("helvetica", "normal");
+        doc.text(`LOCAL: ${local} | TICKET: ${document.getElementById('ticket').value} | FECHA: ${new Date().toLocaleDateString()}`, 15, 32);
+        doc.text(`TÉCNICO: ${document.getElementById('tecnico').value} | LABOR: ${document.getElementById('labor').value} Hs | VIÁTICOS: $${document.getElementById('viaticos').value}`, 15, 38);
+        doc.setFont("helvetica", "bold"); doc.text(`ESTADO GENERAL: ${document.getElementById('statusMsg').innerText} (${document.getElementById('ppm').value} PPM)`, 15, 46);
 
-        let y = 55;
+        let y = 58;
         document.querySelectorAll('.equipo-item').forEach((eq, i) => {
             if(y > 240) { doc.addPage(); y = 20; }
-            doc.setFont("helvetica", "bold"); 
-            const titulo = `${i+1}. ${eq.querySelector('.eq-mod').value} [S/N: ${eq.querySelector('.eq-sn').value}]`;
-            doc.text(titulo, 15, y);
+            doc.setFont("helvetica", "bold"); doc.text(`${i+1}. ${eq.querySelector('.eq-mod').value} [SN: ${eq.querySelector('.eq-sn').value}] - ${eq.querySelector('.eq-est').value}`, 15, y);
             doc.setFont("helvetica", "normal"); const lines = doc.splitTextToSize(eq.querySelector('.eq-det').value, 180);
             doc.text(lines, 15, y+5); y += (lines.length * 5) + 10;
-            doc.setFontSize(8); doc.text(`UTILIZADOS: ${eq.querySelector('.eq-rep-u').value}`, 15, y); y += 4;
-            doc.text(`NECESARIOS: ${eq.querySelector('.eq-rep-n').value}`, 15, y); y += 8;
-            doc.setFontSize(9);
+            doc.setFontSize(8); doc.text(`REPUESTOS: ${eq.querySelector('.eq-rep-u').value || 'N/C'} | PEDIDO: ${eq.querySelector('.eq-rep-n').value || 'N/C'}`, 15, y); y += 8; doc.setFontSize(9);
         });
 
         if(processedImages.length > 0) {
@@ -283,18 +257,17 @@
         doc.addPage(); doc.text("VALIDACIÓN DE CONFORMIDAD", 15, 20);
         doc.addImage(padT.toDataURL(),'PNG',15,35,60,30); doc.addImage(padE.toDataURL(),'PNG',120,35,60,30);
         doc.text("FIRMA TÉCNICO", 15, 70); doc.text(`ENCARGADO: ${document.getElementById('nombreEncargado').value}`, 120, 70);
-        doc.save(`Mostaza_${local}_${document.getElementById('ticket').value}.pdf`);
+        doc.save(`Mostaza_${local}_T${document.getElementById('ticket').value}.pdf`);
     }
 
     function sendWA() {
         const local = document.getElementById('local').value || "S/N";
-        const ticket = document.getElementById('ticket').value || "S/N";
-        const baliza = (colorFinal !== "VERDE") ? "⚠️ " : "";
-        const msg = `*${baliza}${local} - TICKET: ${ticket}*%0A*Técnico:* ${document.getElementById('tecnico').value}%0A*Estado:* ${document.getElementById('statusMsg').innerText}%0A%0A_Favor de revisar informe adjunto._`;
+        const baliza = (colorFinal !== "VERDE") ? "⚠️ " : "✅ ";
+        const msg = `*${baliza}${local.toUpperCase()} - TICKET: ${document.getElementById('ticket').value}*%0A*Técnico:* ${document.getElementById('tecnico').value}%0A*Estado:* ${document.getElementById('statusMsg').innerText}%0A%0A_Favor de revisar informe técnico adjunto._`;
         window.open(`https://wa.me/?text=${msg}`, '_blank');
     }
 
-    function resetAll() { if(confirm("¿BORRAR TODOS LOS DATOS?")) { localStorage.clear(); location.reload(); } }
+    function resetAll() { if(confirm("¿BORRAR TODO?")) { localStorage.removeItem('mostaza_elite_v94'); location.reload(); } }
 </script>
 </body>
 </html>
