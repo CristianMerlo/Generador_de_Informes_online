@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>SISTEMA ELITE V9.8 - FULL RESTORE</title>
+    <title>SISTEMA ELITE V9.9 - AUDITORÍA TOTAL</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/signature_pad@4.0.0/dist/signature_pad.umd.min.js"></script>
@@ -13,10 +13,10 @@
         .card { background: white; border: 2px solid #d1d5db; border-radius: 8px; padding: 1rem; margin-bottom: 1rem; }
         label { font-size: 9px; font-weight: 900; text-transform: uppercase; color: #6b7280; display: block; margin-bottom: 2px; }
         input, select, textarea { border: 2px solid #9ca3af !important; padding: 10px !important; font-size: 14px !important; width: 100%; border-radius: 4px; background: #fff; color: #000; }
-        .tag-btn { background: #e5e7eb; border: 1px solid #9ca3af; padding: 6px 10px; border-radius: 4px; font-size: 11px; font-weight: bold; cursor: pointer; }
         .signature-box { border: 2px solid #000; background: #fff; border-radius: 4px; position: relative; }
-        .lock-btn { position: absolute; top: 5px; right: 5px; z-index: 10; background: #eee; padding: 5px; border-radius: 4px; border: 1px solid #ccc; }
-        .locked { background: #fee2e2 !important; opacity: 0.8; }
+        .lock-btn { position: absolute; top: 5px; right: 5px; z-index: 10; background: #eee; padding: 5px; border-radius: 4px; border: 1px solid #ccc; font-size: 14px; }
+        .locked { background: #fee2e2 !important; opacity: 0.8; cursor: not-allowed; }
+        .tag-btn { background: #e5e7eb; border: 1px solid #9ca3af; padding: 6px 10px; border-radius: 4px; font-size: 11px; font-weight: bold; cursor: pointer; }
     </style>
 </head>
 <body class="pb-24">
@@ -24,40 +24,25 @@
 <header class="bg-[#1A1A1B] text-white p-4 sticky top-0 z-50 flex justify-between items-center border-b-4 border-[#F58220]">
     <div class="flex items-center gap-3">
         <div id="statusLed" class="h-5 w-5 rounded-full bg-gray-500"></div>
-        <h1 class="text-lg font-bold uppercase leading-none">Mostaza <span class="text-[#F58220]">Elite V9.8</span></h1>
+        <h1 class="text-lg font-bold uppercase leading-none">Mostaza <span class="text-[#F58220]">Elite V9.9</span></h1>
     </div>
-    <button onclick="resetAll()" class="bg-red-700 p-2 rounded text-[10px] font-bold text-white uppercase">Reset</button>
+    <button onclick="resetAll()" class="bg-red-700 p-2 rounded text-[10px] font-bold text-white uppercase">Limpiar Todo</button>
 </header>
 
 <main class="max-w-2xl mx-auto p-3">
     <form id="mainForm">
-        <!-- 1. ADMINISTRACIÓN CON TRIPLE VINCULACIÓN Y FECHA -->
+        <!-- 1. ADMIN -->
         <div class="card border-l-8 border-l-orange-500">
             <h3 class="text-xs font-black uppercase text-gray-500 mb-3 border-b">1. Administración y Fecha</h3>
             <div class="grid grid-cols-6 gap-2">
-                <div class="col-span-4"><label>Fecha de Servicio</label><input type="date" id="fecha" class="persist font-bold"></div>
+                <div class="col-span-4"><label>Fecha</label><input type="date" id="fecha" class="persist font-bold"></div>
                 <div class="col-span-2"><label>Ticket #</label><input type="text" id="ticket" class="persist"></div>
-                
-                <div class="col-span-6">
-                    <label>Nombre Sucursal</label>
-                    <input type="text" id="local" list="listaNombres" class="persist uppercase font-bold text-orange-600" placeholder="BUSCAR LOCAL..." oninput="sincronizar('nombre')">
-                    <datalist id="listaNombres"></datalist>
-                </div>
-                
-                <div class="col-span-3">
-                    <label>Sigla Sistema</label>
-                    <input type="text" id="siglaSis" list="listaSiglaSis" class="persist uppercase text-center font-black text-blue-600" oninput="sincronizar('sis')">
-                    <datalist id="listaSiglaSis"></datalist>
-                </div>
-                <div class="col-span-3">
-                    <label>Sigla Tickets</label>
-                    <input type="text" id="siglaTic" list="listaSiglaTic" class="persist uppercase text-center font-black text-[#F58220]" oninput="sincronizar('tic')">
-                    <datalist id="listaSiglaTic"></datalist>
-                </div>
-
-                <div class="col-span-6 mt-2"><label>Técnico Responsable</label><select id="tecnico" class="persist"><option value="Fernando Soria">FERNANDO SORIA</option><option value="Tomas Vera">TOMAS VERA</option><option value="Ana Guerrero">ANA GUERRERO</option></select></div>
-                <div class="col-span-3 mt-2"><label>Labor (Horas)</label><input type="number" id="labor" class="persist" placeholder="0"></div>
-                <div class="col-span-3 mt-2"><label>Viáticos (ARS)</label><input type="number" id="viaticos" class="persist" placeholder="0.00"></div>
+                <div class="col-span-6"><label>Local</label><input type="text" id="local" list="listaNombres" class="persist uppercase font-bold text-orange-600" oninput="sincronizar('nombre')"><datalist id="listaNombres"></datalist></div>
+                <div class="col-span-3"><label>Sistema</label><input type="text" id="siglaSis" list="listaSiglaSis" class="persist text-center font-bold" oninput="sincronizar('sis')"><datalist id="listaSiglaSis"></datalist></div>
+                <div class="col-span-3"><label>Sigla Ticket</label><input type="text" id="siglaTic" list="listaSiglaTic" class="persist text-center font-bold" oninput="sincronizar('tic')"><datalist id="listaSiglaTic"></datalist></div>
+                <div class="col-span-6 mt-2"><label>Técnico</label><select id="tecnico" class="persist"><option value="Fernando Soria">FERNANDO SORIA</option><option value="Tomas Vera">TOMAS VERA</option><option value="Ana Guerrero">ANA GUERRERO</option></select></div>
+                <div class="col-span-3 mt-2"><label>Labor (Hs)</label><input type="number" id="labor" class="persist"></div>
+                <div class="col-span-3 mt-2"><label>Viáticos (ARS)</label><input type="number" id="viaticos" class="persist"></div>
             </div>
         </div>
 
@@ -74,68 +59,67 @@
             </div>
         </div>
 
-        <!-- 3. OBSERVACIONES INICIALES -->
+        <!-- 3. OBS PREVIAS -->
         <div class="card border-l-8 border-l-purple-500">
             <h3 class="text-xs font-black uppercase text-purple-600 mb-3 border-b">3. Observaciones Iniciales</h3>
-            <textarea id="obsPrevias" class="persist text-xs" rows="2" placeholder="Estado previo: limpieza, chicler, filtros..."></textarea>
+            <textarea id="obsPrevias" class="persist text-xs" rows="2" placeholder="Estado previo..."></textarea>
         </div>
 
-        <!-- 4. EQUIPOS CON REVESTIMIENTO COMPLETO -->
-        <h3 class="text-xs font-black uppercase text-gray-500 mb-3 px-1">4. Relevamiento de Equipos</h3>
+        <!-- 4. EQUIPOS -->
         <div id="equiposGrid"></div>
         <button type="button" onclick="addEquipo()" class="w-full mb-6 py-3 border-2 border-dashed border-gray-400 font-bold text-gray-400 uppercase text-xs">+ Añadir Equipo</button>
 
-        <!-- 5. OBSERVACIONES DE CIERRE -->
+        <!-- 5. OBS CIERRE -->
         <div class="card border-l-8 border-l-green-600">
             <h3 class="text-xs font-black uppercase text-green-600 mb-3 border-b">5. Observaciones de Cierre</h3>
-            <textarea id="obsFinales" class="persist text-xs" rows="2" placeholder="Conclusiones finales..."></textarea>
+            <textarea id="obsFinales" class="persist text-xs" rows="2" placeholder="Detalles finales..."></textarea>
         </div>
 
         <!-- 6. FIRMAS -->
         <div class="card">
-            <h3 class="text-xs font-black uppercase text-center mb-4 border-b">6. Validación</h3>
             <div class="grid grid-cols-1 gap-6">
                 <div class="text-center">
                     <label>Firma Técnico</label>
-                    <div class="signature-box mx-auto" id="boxT"><button type="button" class="lock-btn" onclick="toggleLock('padT', 'boxT')">🔓</button><canvas id="padT" width="350" height="150" class="w-full h-auto"></canvas></div>
+                    <div class="signature-box mx-auto" id="boxT">
+                        <button type="button" class="lock-btn" onclick="toggleLock('T')">🔓</button>
+                        <canvas id="padT" width="350" height="150" class="w-full h-auto"></canvas>
+                    </div>
+                    <button type="button" onclick="clearPad('T')" class="text-[9px] underline uppercase mt-2">Limpiar Firma Téc.</button>
                 </div>
                 <div class="text-center border-t pt-4">
                     <label>Firma Encargado Local</label>
-                    <div class="signature-box mx-auto mb-2" id="boxE"><button type="button" class="lock-btn" onclick="toggleLock('padE', 'boxE')">🔓</button><canvas id="padE" width="350" height="150" class="w-full h-auto"></canvas></div>
-                    <input type="text" id="nombreEncargado" class="persist text-sm uppercase text-center font-bold" placeholder="NOMBRE COMPLETO ENCARGADO">
+                    <div class="signature-box mx-auto" id="boxE">
+                        <button type="button" class="lock-btn" onclick="toggleLock('E')">🔓</button>
+                        <canvas id="padE" width="350" height="150" class="w-full h-auto"></canvas>
+                    </div>
+                    <input type="text" id="nombreEncargado" class="persist text-sm uppercase text-center font-bold mt-2" placeholder="NOMBRE ENCARGADO">
+                    <button type="button" onclick="clearPad('E')" class="text-[9px] underline uppercase mt-2">Limpiar Firma Enc.</button>
                 </div>
             </div>
         </div>
 
-        <button type="button" onclick="generarPDF()" class="w-full bg-[#F58220] text-white py-4 text-xl font-black uppercase rounded shadow-xl border-b-4 border-orange-800">Generar Informe V9.8</button>
+        <button type="button" onclick="generarPDF()" class="w-full bg-[#F58220] text-white py-4 text-xl font-black uppercase rounded shadow-xl border-b-4 border-orange-800">Generar Informe V9.9</button>
     </form>
 </main>
 
 <script>
-    // LISTADO DE LOCALES (Basado en captura de pantalla del usuario)
     const DB_LOCALES = [
-        { n: "VILLA DEL PARQUE", s: "FVDP", t: "FVDP" },
-        { n: "SAN JUSTO", s: "FSJU", t: "FCSJ3" },
-        { n: "LAFERRERE 2", s: "FLF2", t: "FLF2" },
-        { n: "RAMOS", s: "-", t: "FMRAM" },
-        { n: "EZEIZA", s: "FEZE", t: "FEZEA" },
-        { n: "CANNING", s: "FMCAN", t: "FMCAN" },
-        { n: "MONTEGRANDE", s: "FMGD", t: "FMGRA" },
-        { n: "ZARATE", s: "FZAR", t: "FMZAR" },
-        { n: "GUALEGUAYCHU", s: "-", t: "FMGUA" },
-        { n: "MERCADO PARAGUAY X 15", s: "-", t: "-" },
-        { n: "CABILDO", s: "FCAB", t: "FCABI" }
+        { n: "VILLA DEL PARQUE", s: "FVDP", t: "FVDP" }, { n: "SAN JUSTO", s: "FSJU", t: "FCSJ3" },
+        { n: "LAFERRERE 2", s: "FLF2", t: "FLF2" }, { n: "RAMOS", s: "-", t: "FMRAM" },
+        { n: "EZEIZA", s: "FEZE", t: "FEZEA" }, { n: "CANNING", s: "FMCAN", t: "FMCAN" },
+        { n: "MONTEGRANDE", s: "FMGD", t: "FMGRA" }, { n: "ZARATE", s: "FZAR", t: "FMZAR" },
+        { n: "GUALEGUAYCHU", s: "-", t: "FMGUA" }, { n: "CABILDO", s: "FCAB", t: "FCABI" }
     ];
 
     let padT, padE;
+    let locks = { T: false, E: false };
     let waterColor = "VERDE", machineColor = "VERDE";
     const TAREAS = ["Limpieza grupo", "Cambio juntas", "Calibración", "Descalcificación"];
 
     window.onload = () => {
         padT = new SignaturePad(document.getElementById('padT'));
         padE = new SignaturePad(document.getElementById('padE'));
-        initDatalists();
-        loadDraft();
+        initDatalists(); loadDraft();
         if(document.querySelectorAll('.equipo-item').length === 0) addEquipo();
         evaluarJerarquia();
         document.querySelectorAll('.persist').forEach(el => el.addEventListener('input', saveDraft));
@@ -160,26 +144,34 @@
         if(origen === 'nombre') encontrado = DB_LOCALES.find(l => l.n === nInput.value.toUpperCase());
         if(origen === 'sis') encontrado = DB_LOCALES.find(l => l.s === sInput.value.toUpperCase());
         if(origen === 'tic') encontrado = DB_LOCALES.find(l => l.t === tInput.value.toUpperCase());
-        if(encontrado) {
-            nInput.value = encontrado.n;
-            sInput.value = encontrado.s;
-            tInput.value = encontrado.t;
-        }
+        if(encontrado) { nInput.value = encontrado.n; sInput.value = encontrado.s; tInput.value = encontrado.t; }
         saveDraft();
     }
 
-    function toggleLock(padId, boxId) {
-        const pad = padId === 'padT' ? padT : padE;
-        const box = document.getElementById(boxId);
+    function toggleLock(type) {
+        locks[type] = !locks[type];
+        const pad = type === 'T' ? padT : padE;
+        const box = document.getElementById(`box${type}`);
         const btn = box.querySelector('.lock-btn');
-        if (pad._on) { pad.off(); btn.innerText = "🔒"; box.classList.add('locked'); } 
+        if(locks[type]) { pad.off(); btn.innerText = "🔒"; box.classList.add('locked'); }
         else { pad.on(); btn.innerText = "🔓"; box.classList.remove('locked'); }
+    }
+
+    function clearPad(type) {
+        if(locks[type]) return alert("Firma bloqueada. Desbloquea para limpiar.");
+        const pad = type === 'T' ? padT : padE;
+        pad.clear();
     }
 
     function evaluarJerarquia() {
         const ppm = parseInt(document.getElementById('ppm').value) || 0;
-        const fallasAgua = [document.getElementById('f_filtrado').value, document.getElementById('f_ablandador').value, document.getElementById('f_osmosis').value].filter(v => v === 'NO OP').length;
+        const f = document.getElementById('f_filtrado').value;
+        const a = document.getElementById('f_ablandador').value;
+        const o = document.getElementById('f_osmosis').value;
+        const fallasAgua = [f, a, o].filter(v => v === 'NO OP').length;
+        
         waterColor = (ppm > 200 || fallasAgua >= 2) ? "ROJO" : (ppm > 150 || fallasAgua === 1 ? "AMARILLO" : "VERDE");
+        
         let mScore = 0;
         document.querySelectorAll('.eq-est').forEach(s => {
             if(s.value === "FUERA DE SERVICIO") mScore = 2;
@@ -194,14 +186,14 @@
         const div = document.createElement('div');
         div.className = "card equipo-item border-l-8 border-l-orange-500";
         div.innerHTML = `
-            <div class="flex justify-between items-center mb-3 gap-2">
+            <div class="flex justify-between items-center mb-3">
                 <select class="persist-dyn eq-mod font-bold text-orange-600 w-2/3 border-none p-0 bg-transparent">
                     <option value="Cimbali" ${val?.mod==='Cimbali'?'selected':''}>CIMBALI</option>
                     <option value="Melitta" ${val?.mod==='Melitta'?'selected':''}>MELITTA</option>
                     <option value="Otros" ${val?.mod==='Otros'?'selected':''}>OTROS</option>
                 </select>
-                <input type="text" placeholder="S/N" class="persist-dyn eq-sn text-xs w-1/4 text-right border-none" value="${val?.sn || ''}">
-                <button type="button" onclick="this.closest('.equipo-item').remove(); evaluarJerarquia();" class="text-red-500 font-bold">&times;</button>
+                <input type="text" placeholder="S/N" class="persist-dyn eq-sn text-xs w-1/3 text-right" value="${val?.sn || ''}">
+                <button type="button" onclick="this.closest('.equipo-item').remove(); evaluarJerarquia();" class="ml-2 text-red-500 font-bold">&times;</button>
             </div>
             <textarea placeholder="TRABAJO REALIZADO..." class="persist-dyn eq-det text-xs mb-2" rows="2">${val?.det || ''}</textarea>
             <div class="flex flex-wrap gap-1 mb-2">${TAREAS.map(t => `<span class="tag-btn text-[9px]" onclick="addTask(this, '${t}')">${t}</span>`).join('')}</div>
@@ -209,7 +201,7 @@
                 <input type="text" placeholder="REPUESTOS UTILIZADOS" class="persist-dyn eq-rep-u text-[10px]" value="${val?.repU || ''}">
                 <input type="text" placeholder="REPUESTOS NECESARIOS (PEDIDO)" class="persist-dyn eq-rep-n text-[10px]" value="${val?.repN || ''}">
                 <div class="flex gap-2">
-                    <input type="text" placeholder="FERRETERÍA / MATERIALES" class="persist-dyn eq-fer-desc text-[10px] w-2/3" value="${val?.ferD || ''}">
+                    <input type="text" placeholder="FERRETERÍA" class="persist-dyn eq-fer-desc text-[10px] w-2/3" value="${val?.ferD || ''}">
                     <input type="number" placeholder="$ COSTO" class="persist-dyn eq-fer-cost text-[10px] w-1/3" value="${val?.ferC || ''}">
                 </div>
                 <select class="persist-dyn eq-est font-bold text-xs" onchange="evaluarJerarquia()">
@@ -227,19 +219,19 @@
 
     function saveDraft() {
         const data = {
-            c: { fe: document.getElementById('fecha').value, l: document.getElementById('local').value, ss: document.getElementById('siglaSis').value, st: document.getElementById('siglaTic').value, t: document.getElementById('ticket').value, tec: document.getElementById('tecnico').value, p: document.getElementById('ppm').value, lab: document.getElementById('labor').value, via: document.getElementById('viaticos').value, op: document.getElementById('obsPrevias').value, of: document.getElementById('obsFinales').value, enc: document.getElementById('nombreEncargado').value },
+            c: { fe: document.getElementById('fecha').value, l: document.getElementById('local').value, ss: document.getElementById('siglaSis').value, st: document.getElementById('siglaTic').value, t: document.getElementById('ticket').value, tec: document.getElementById('tecnico').value, p: document.getElementById('ppm').value, f: document.getElementById('f_filtrado').value, a: document.getElementById('f_ablandador').value, o: document.getElementById('f_osmosis').value, lab: document.getElementById('labor').value, via: document.getElementById('viaticos').value, op: document.getElementById('obsPrevias').value, of: document.getElementById('obsFinales').value, enc: document.getElementById('nombreEncargado').value },
             e: Array.from(document.querySelectorAll('.equipo-item')).map(eq => ({ mod: eq.querySelector('.eq-mod').value, sn: eq.querySelector('.eq-sn').value, det: eq.querySelector('.eq-det').value, repU: eq.querySelector('.eq-rep-u').value, repN: eq.querySelector('.eq-rep-n').value, ferD: eq.querySelector('.eq-fer-desc').value, ferC: eq.querySelector('.eq-fer-cost').value, est: eq.querySelector('.eq-est').value }))
         };
-        localStorage.setItem('mostaza_elite_v98', JSON.stringify(data));
+        localStorage.setItem('mostaza_elite_v99', JSON.stringify(data));
     }
 
     function loadDraft() {
-        const raw = localStorage.getItem('mostaza_elite_v98'); if (!raw) return;
+        const raw = localStorage.getItem('mostaza_elite_v99'); if (!raw) return;
         const d = JSON.parse(raw);
-        document.getElementById('fecha').value = d.c.fe || ''; 
-        document.getElementById('local').value = d.c.l || ''; document.getElementById('siglaSis').value = d.c.ss || ''; document.getElementById('siglaTic').value = d.c.st || '';
-        document.getElementById('ticket').value = d.c.t || ''; document.getElementById('tecnico').value = d.c.tec || ''; document.getElementById('ppm').value = d.c.p || ''; 
-        document.getElementById('labor').value = d.c.lab || ''; document.getElementById('viaticos').value = d.c.via || '';
+        document.getElementById('fecha').value = d.c.fe || ''; document.getElementById('local').value = d.c.l || ''; document.getElementById('siglaSis').value = d.c.ss || '';
+        document.getElementById('siglaTic').value = d.c.st || ''; document.getElementById('ticket').value = d.c.t || ''; document.getElementById('tecnico').value = d.c.tec || '';
+        document.getElementById('ppm').value = d.c.p || ''; document.getElementById('f_filtrado').value = d.c.f || 'OP'; document.getElementById('f_ablandador').value = d.c.a || 'OP';
+        document.getElementById('f_osmosis').value = d.c.o || 'N/A'; document.getElementById('labor').value = d.c.lab || ''; document.getElementById('viaticos').value = d.c.via || '';
         document.getElementById('obsPrevias').value = d.c.op || ''; document.getElementById('obsFinales').value = d.c.of || ''; document.getElementById('nombreEncargado').value = d.c.enc || '';
         if (d.e) { document.getElementById('equiposGrid').innerHTML = ''; d.e.forEach(eq => addEquipo(eq)); }
     }
@@ -248,26 +240,42 @@
 
     function generarPDF() {
         const { jsPDF } = window.jspdf; const doc = new jsPDF();
-        doc.setFillColor(26,26,27); doc.rect(0,0,210,20,'F'); doc.setTextColor(245,130,32); doc.setFontSize(14); doc.text("INFORME TÉCNICO ELITE V9.8", 15, 13);
+        doc.setFillColor(26,26,27); doc.rect(0,0,210,20,'F'); doc.setTextColor(245,130,32); doc.setFontSize(14); doc.text("INFORME TÉCNICO ELITE V9.9", 15, 13);
+        
         doc.setTextColor(0); doc.setFontSize(9);
         doc.text(`FECHA: ${document.getElementById('fecha').value} | TICKET: ${document.getElementById('ticket').value}`, 15, 30);
         doc.text(`LOCAL: ${document.getElementById('local').value} (${document.getElementById('siglaSis').value} / ${document.getElementById('siglaTic').value})`, 15, 36);
         doc.text(`TÉCNICO: ${document.getElementById('tecnico').value} | LABOR: ${document.getElementById('labor').value} Hs | VIÁTICOS: $${document.getElementById('viaticos').value}`, 15, 42);
 
-        doc.setFont("helvetica", "bold"); doc.text("ESTADO AGUA:", 15, 52);
-        const cA = getSemCol(waterColor); doc.setFillColor(cA[0], cA[1], cA[2]); doc.circle(45, 51, 3, 'F'); doc.setTextColor(cA[0], cA[1], cA[2]); doc.text(waterColor, 50, 52);
-        doc.setTextColor(0); doc.text("ESTADO EQUIPO:", 100, 52);
-        const cE = getSemCol(machineColor); doc.setFillColor(cE[0], cE[1], cE[2]); doc.circle(135, 51, 3, 'F'); doc.setTextColor(cE[0], cE[1], cE[2]); doc.text(machineColor, 140, 52);
+        doc.setFont("helvetica", "bold"); doc.text("CALIDAD DE AGUA:", 15, 50);
+        const cA = getSemCol(waterColor); doc.setFillColor(cA[0], cA[1], cA[2]); doc.circle(48, 49, 3, 'F'); doc.setTextColor(cA[0], cA[1], cA[2]); doc.text(waterColor, 53, 50);
+        doc.setTextColor(0); doc.setFont("helvetica", "normal"); doc.setFontSize(8);
+        doc.text(`PPM: ${document.getElementById('ppm').value} | FILTRO: ${document.getElementById('f_filtrado').value} | ABLANDADOR: ${document.getElementById('f_ablandador').value} | ÓSMOSIS: ${document.getElementById('f_osmosis').value}`, 15, 55);
 
-        let y = 70;
+        doc.setFontSize(9); doc.setFont("helvetica", "bold"); doc.text("OBS. INICIALES:", 15, 62);
+        doc.setFont("helvetica", "normal"); doc.setFontSize(8);
+        const pLines = doc.splitTextToSize(document.getElementById('obsPrevias').value, 180); doc.text(pLines, 15, 67);
+
+        let y = 75 + (pLines.length * 4);
         document.querySelectorAll('.equipo-item').forEach((eq, i) => {
-            if(y > 250) { doc.addPage(); y = 20; }
+            if(y > 240) { doc.addPage(); y = 20; }
             doc.setFontSize(9); doc.setFont("helvetica", "bold"); doc.text(`${i+1}. ${eq.querySelector('.eq-mod').value} (SN: ${eq.querySelector('.eq-sn').value}) - ${eq.querySelector('.eq-est').value}`, 15, y);
-            doc.setFont("helvetica", "normal"); doc.text(doc.splitTextToSize(eq.querySelector('.eq-det').value, 180), 15, y+5);
-            y += 20; doc.setFontSize(7); doc.text(`USADOS: ${eq.querySelector('.eq-rep-u').value} | PEDIDO: ${eq.querySelector('.eq-rep-n').value}`, 15, y); y += 4;
+            doc.setFont("helvetica", "normal"); doc.setFontSize(8);
+            const detLines = doc.splitTextToSize(eq.querySelector('.eq-det').value, 180); doc.text(detLines, 15, y+5);
+            y += (detLines.length * 4) + 8;
+            doc.text(`USADOS: ${eq.querySelector('.eq-rep-u').value} | PEDIDO: ${eq.querySelector('.eq-rep-n').value}`, 15, y); y += 4;
             doc.text(`FERRETERÍA: ${eq.querySelector('.eq-fer-desc').value} ($${eq.querySelector('.eq-fer-cost').value})`, 15, y); y += 10;
         });
-        doc.save(`Reporte_Elite_${document.getElementById('siglaTic').value}_${document.getElementById('fecha').value}.pdf`);
+
+        if(y > 240) { doc.addPage(); y = 20; }
+        doc.setFontSize(9); doc.setFont("helvetica", "bold"); doc.text("OBS. CIERRE:", 15, y);
+        doc.setFont("helvetica", "normal"); doc.setFontSize(8);
+        const fLines = doc.splitTextToSize(document.getElementById('obsFinales').value, 180); doc.text(fLines, 15, y+5);
+
+        doc.addPage(); doc.text("VALIDACIÓN Y FIRMAS", 15, 20);
+        doc.addImage(padT.toDataURL(),'PNG',15,30,60,30); doc.addImage(padE.toDataURL(),'PNG',120,30,60,30);
+        doc.text("FIRMA TÉCNICO", 15, 65); doc.text(`ENCARGADO: ${document.getElementById('nombreEncargado').value}`, 120, 65);
+        doc.save(`Mostaza_${document.getElementById('siglaTic').value}_${document.getElementById('fecha').value}.pdf`);
     }
 
     function resetAll() { if(confirm("¿BORRAR TODO?")) { localStorage.clear(); location.reload(); } }
