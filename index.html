@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>SISTEMA ELITE V9.9 - AUDITORÍA TOTAL</title>
+    <title>SISTEMA ELITE V10.0 - RECTIFICADO TOTAL</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/signature_pad@4.0.0/dist/signature_pad.umd.min.js"></script>
@@ -14,8 +14,8 @@
         label { font-size: 9px; font-weight: 900; text-transform: uppercase; color: #6b7280; display: block; margin-bottom: 2px; }
         input, select, textarea { border: 2px solid #9ca3af !important; padding: 10px !important; font-size: 14px !important; width: 100%; border-radius: 4px; background: #fff; color: #000; }
         .signature-box { border: 2px solid #000; background: #fff; border-radius: 4px; position: relative; }
-        .lock-btn { position: absolute; top: 5px; right: 5px; z-index: 10; background: #eee; padding: 5px; border-radius: 4px; border: 1px solid #ccc; font-size: 14px; }
-        .locked { background: #fee2e2 !important; opacity: 0.8; cursor: not-allowed; }
+        .lock-btn { position: absolute; top: 5px; right: 5px; z-index: 10; background: #eee; padding: 5px; border-radius: 4px; border: 1px solid #ccc; }
+        .locked { background: #fee2e2 !important; opacity: 0.8; }
         .tag-btn { background: #e5e7eb; border: 1px solid #9ca3af; padding: 6px 10px; border-radius: 4px; font-size: 11px; font-weight: bold; cursor: pointer; }
     </style>
 </head>
@@ -24,21 +24,21 @@
 <header class="bg-[#1A1A1B] text-white p-4 sticky top-0 z-50 flex justify-between items-center border-b-4 border-[#F58220]">
     <div class="flex items-center gap-3">
         <div id="statusLed" class="h-5 w-5 rounded-full bg-gray-500"></div>
-        <h1 class="text-lg font-bold uppercase leading-none">Mostaza <span class="text-[#F58220]">Elite V9.9</span></h1>
+        <h1 class="text-lg font-bold uppercase leading-none">Mostaza <span class="text-[#F58220]">Elite V10.0</span></h1>
     </div>
-    <button onclick="resetAll()" class="bg-red-700 p-2 rounded text-[10px] font-bold text-white uppercase">Limpiar Todo</button>
+    <button onclick="resetAll()" class="bg-red-700 p-2 rounded text-[10px] font-bold text-white uppercase">Reset Todo</button>
 </header>
 
 <main class="max-w-2xl mx-auto p-3">
     <form id="mainForm">
-        <!-- 1. ADMIN -->
+        <!-- 1. ADMIN CON TRIPLE VINCULACIÓN -->
         <div class="card border-l-8 border-l-orange-500">
-            <h3 class="text-xs font-black uppercase text-gray-500 mb-3 border-b">1. Administración y Fecha</h3>
+            <h3 class="text-xs font-black uppercase text-gray-500 mb-3 border-b">1. Administración</h3>
             <div class="grid grid-cols-6 gap-2">
                 <div class="col-span-4"><label>Fecha</label><input type="date" id="fecha" class="persist font-bold"></div>
                 <div class="col-span-2"><label>Ticket #</label><input type="text" id="ticket" class="persist"></div>
                 <div class="col-span-6"><label>Local</label><input type="text" id="local" list="listaNombres" class="persist uppercase font-bold text-orange-600" oninput="sincronizar('nombre')"><datalist id="listaNombres"></datalist></div>
-                <div class="col-span-3"><label>Sistema</label><input type="text" id="siglaSis" list="listaSiglaSis" class="persist text-center font-bold" oninput="sincronizar('sis')"><datalist id="listaSiglaSis"></datalist></div>
+                <div class="col-span-3"><label>Sigla Sistema</label><input type="text" id="siglaSis" list="listaSiglaSis" class="persist text-center font-bold" oninput="sincronizar('sis')"><datalist id="listaSiglaSis"></datalist></div>
                 <div class="col-span-3"><label>Sigla Ticket</label><input type="text" id="siglaTic" list="listaSiglaTic" class="persist text-center font-bold" oninput="sincronizar('tic')"><datalist id="listaSiglaTic"></datalist></div>
                 <div class="col-span-6 mt-2"><label>Técnico</label><select id="tecnico" class="persist"><option value="Fernando Soria">FERNANDO SORIA</option><option value="Tomas Vera">TOMAS VERA</option><option value="Ana Guerrero">ANA GUERRERO</option></select></div>
                 <div class="col-span-3 mt-2"><label>Labor (Hs)</label><input type="number" id="labor" class="persist"></div>
@@ -46,59 +46,58 @@
             </div>
         </div>
 
-        <!-- 2. AGUA -->
+        <!-- 2. AGUA CON N/A -->
         <div class="card border-l-8 border-l-blue-500">
-            <h3 class="text-xs font-black uppercase text-blue-600 mb-3 border-b">2. Calidad de Agua</h3>
+            <h3 class="text-xs font-black uppercase text-blue-600 mb-3 border-b">2. Calidad de Agua (Prioridad)</h3>
             <div class="space-y-4">
                 <div><label>PPM Post-Filtrado</label><input type="number" id="ppm" class="persist" oninput="evaluarJerarquia()"></div>
                 <div class="grid grid-cols-3 gap-2">
-                    <div><label>Filtro</label><select id="f_filtrado" class="persist" onchange="evaluarJerarquia()"><option value="OP">OP</option><option value="NO OP">NO OP</option></select></div>
-                    <div><label>Ablandador</label><select id="f_ablandador" class="persist" onchange="evaluarJerarquia()"><option value="OP">OP</option><option value="NO OP">NO OP</option></select></div>
+                    <div><label>Filtro</label><select id="f_filtrado" class="persist" onchange="evaluarJerarquia()"><option value="OP">OP</option><option value="NO OP">NO OP</option><option value="N/A">N/A</option></select></div>
+                    <div><label>Ablandador</label><select id="f_ablandador" class="persist" onchange="evaluarJerarquia()"><option value="OP">OP</option><option value="NO OP">NO OP</option><option value="N/A">N/A</option></select></div>
                     <div><label>Ósmosis</label><select id="f_osmosis" class="persist" onchange="evaluarJerarquia()"><option value="N/A">N/A</option><option value="OP">OP</option><option value="NO OP">NO OP</option></select></div>
                 </div>
             </div>
         </div>
 
-        <!-- 3. OBS PREVIAS -->
         <div class="card border-l-8 border-l-purple-500">
             <h3 class="text-xs font-black uppercase text-purple-600 mb-3 border-b">3. Observaciones Iniciales</h3>
-            <textarea id="obsPrevias" class="persist text-xs" rows="2" placeholder="Estado previo..."></textarea>
+            <textarea id="obsPrevias" class="persist text-xs" rows="2"></textarea>
         </div>
 
-        <!-- 4. EQUIPOS -->
+        <h3 class="text-xs font-black uppercase text-gray-500 mb-3 px-1">4. Relevamiento de Equipos</h3>
         <div id="equiposGrid"></div>
         <button type="button" onclick="addEquipo()" class="w-full mb-6 py-3 border-2 border-dashed border-gray-400 font-bold text-gray-400 uppercase text-xs">+ Añadir Equipo</button>
 
-        <!-- 5. OBS CIERRE -->
-        <div class="card border-l-8 border-l-green-600">
-            <h3 class="text-xs font-black uppercase text-green-600 mb-3 border-b">5. Observaciones de Cierre</h3>
-            <textarea id="obsFinales" class="persist text-xs" rows="2" placeholder="Detalles finales..."></textarea>
+        <!-- 5. REGISTRO FOTOGRÁFICO RESTAURADO -->
+        <div class="card border-l-8 border-l-orange-400">
+            <h3 class="text-xs font-black uppercase mb-2 text-orange-500 border-b">5. Evidencia Fotográfica</h3>
+            <input type="file" id="fotoInput" accept="image/*" multiple class="text-xs mb-2">
+            <div id="fotoPreview" class="grid grid-cols-4 gap-2"></div>
         </div>
 
-        <!-- 6. FIRMAS -->
+        <div class="card border-l-8 border-l-green-600">
+            <h3 class="text-xs font-black uppercase text-green-600 mb-3 border-b">6. Observaciones de Cierre</h3>
+            <textarea id="obsFinales" class="persist text-xs" rows="2"></textarea>
+        </div>
+
         <div class="card">
+            <h3 class="text-xs font-black uppercase text-center mb-4 border-b">7. Validación</h3>
             <div class="grid grid-cols-1 gap-6">
                 <div class="text-center">
                     <label>Firma Técnico</label>
-                    <div class="signature-box mx-auto" id="boxT">
-                        <button type="button" class="lock-btn" onclick="toggleLock('T')">🔓</button>
-                        <canvas id="padT" width="350" height="150" class="w-full h-auto"></canvas>
-                    </div>
+                    <div class="signature-box mx-auto" id="boxT"><button type="button" class="lock-btn" onclick="toggleLock('T')">🔓</button><canvas id="padT" width="350" height="150" class="w-full h-auto"></canvas></div>
                     <button type="button" onclick="clearPad('T')" class="text-[9px] underline uppercase mt-2">Limpiar Firma Téc.</button>
                 </div>
                 <div class="text-center border-t pt-4">
-                    <label>Firma Encargado Local</label>
-                    <div class="signature-box mx-auto" id="boxE">
-                        <button type="button" class="lock-btn" onclick="toggleLock('E')">🔓</button>
-                        <canvas id="padE" width="350" height="150" class="w-full h-auto"></canvas>
-                    </div>
+                    <label>Firma Encargado</label>
+                    <div class="signature-box mx-auto" id="boxE"><button type="button" class="lock-btn" onclick="toggleLock('E')">🔓</button><canvas id="padE" width="350" height="150" class="w-full h-auto"></canvas></div>
                     <input type="text" id="nombreEncargado" class="persist text-sm uppercase text-center font-bold mt-2" placeholder="NOMBRE ENCARGADO">
                     <button type="button" onclick="clearPad('E')" class="text-[9px] underline uppercase mt-2">Limpiar Firma Enc.</button>
                 </div>
             </div>
         </div>
 
-        <button type="button" onclick="generarPDF()" class="w-full bg-[#F58220] text-white py-4 text-xl font-black uppercase rounded shadow-xl border-b-4 border-orange-800">Generar Informe V9.9</button>
+        <button type="button" onclick="generarPDF()" class="w-full bg-[#F58220] text-white py-4 text-xl font-black uppercase rounded shadow-xl border-b-4 border-orange-800 active:translate-y-1">Generar Reporte V10.0</button>
     </form>
 </main>
 
@@ -111,9 +110,7 @@
         { n: "GUALEGUAYCHU", s: "-", t: "FMGUA" }, { n: "CABILDO", s: "FCAB", t: "FCABI" }
     ];
 
-    let padT, padE;
-    let locks = { T: false, E: false };
-    let waterColor = "VERDE", machineColor = "VERDE";
+    let padT, padE, processedImages = [], locks = { T: false, E: false }, waterColor = "VERDE", machineColor = "VERDE";
     const TAREAS = ["Limpieza grupo", "Cambio juntas", "Calibración", "Descalcificación"];
 
     window.onload = () => {
@@ -126,113 +123,97 @@
     };
 
     function initDatalists() {
-        const nList = document.getElementById('listaNombres');
-        const sList = document.getElementById('listaSiglaSis');
-        const tList = document.getElementById('listaSiglaTic');
-        DB_LOCALES.forEach(l => {
-            if(l.n !== "-") nList.innerHTML += `<option value="${l.n}">`;
-            if(l.s !== "-") sList.innerHTML += `<option value="${l.s}">`;
-            if(l.t !== "-") tList.innerHTML += `<option value="${l.t}">`;
-        });
+        const nL = document.getElementById('listaNombres'), sL = document.getElementById('listaSiglaSis'), tL = document.getElementById('listaSiglaTic');
+        DB_LOCALES.forEach(l => { if(l.n!=="-") nL.innerHTML += `<option value="${l.n}">`; if(l.s!=="-") sL.innerHTML += `<option value="${l.s}">`; if(l.t!=="-") tL.innerHTML += `<option value="${l.t}">`; });
     }
 
     function sincronizar(origen) {
-        const nInput = document.getElementById('local');
-        const sInput = document.getElementById('siglaSis');
-        const tInput = document.getElementById('siglaTic');
-        let encontrado = null;
-        if(origen === 'nombre') encontrado = DB_LOCALES.find(l => l.n === nInput.value.toUpperCase());
-        if(origen === 'sis') encontrado = DB_LOCALES.find(l => l.s === sInput.value.toUpperCase());
-        if(origen === 'tic') encontrado = DB_LOCALES.find(l => l.t === tInput.value.toUpperCase());
-        if(encontrado) { nInput.value = encontrado.n; sInput.value = encontrado.s; tInput.value = encontrado.t; }
+        const nI = document.getElementById('local'), sI = document.getElementById('siglaSis'), tI = document.getElementById('siglaTic');
+        let enc = null;
+        if(origen==='nombre') enc = DB_LOCALES.find(l=>l.n===nI.value.toUpperCase());
+        if(origen==='sis') enc = DB_LOCALES.find(l=>l.s===sI.value.toUpperCase());
+        if(origen==='tic') enc = DB_LOCALES.find(l=>l.t===tI.value.toUpperCase());
+        if(enc) { nI.value = enc.n; sI.value = enc.s; tI.value = enc.t; }
         saveDraft();
     }
 
     function toggleLock(type) {
-        locks[type] = !locks[type];
-        const pad = type === 'T' ? padT : padE;
-        const box = document.getElementById(`box${type}`);
-        const btn = box.querySelector('.lock-btn');
+        locks[type] = !locks[type]; const pad = type === 'T' ? padT : padE;
+        const box = document.getElementById(`box${type}`), btn = box.querySelector('.lock-btn');
         if(locks[type]) { pad.off(); btn.innerText = "🔒"; box.classList.add('locked'); }
         else { pad.on(); btn.innerText = "🔓"; box.classList.remove('locked'); }
     }
 
-    function clearPad(type) {
-        if(locks[type]) return alert("Firma bloqueada. Desbloquea para limpiar.");
-        const pad = type === 'T' ? padT : padE;
-        pad.clear();
-    }
+    function clearPad(type) { if(locks[type]) return alert("Bloqueado."); const pad = type === 'T' ? padT : padE; pad.clear(); }
 
     function evaluarJerarquia() {
         const ppm = parseInt(document.getElementById('ppm').value) || 0;
-        const f = document.getElementById('f_filtrado').value;
-        const a = document.getElementById('f_ablandador').value;
-        const o = document.getElementById('f_osmosis').value;
-        const fallasAgua = [f, a, o].filter(v => v === 'NO OP').length;
-        
+        const fallasAgua = [document.getElementById('f_filtrado').value, document.getElementById('f_ablandador').value, document.getElementById('f_osmosis').value].filter(v => v === 'NO OP').length;
         waterColor = (ppm > 200 || fallasAgua >= 2) ? "ROJO" : (ppm > 150 || fallasAgua === 1 ? "AMARILLO" : "VERDE");
-        
-        let mScore = 0;
-        document.querySelectorAll('.eq-est').forEach(s => {
-            if(s.value === "FUERA DE SERVICIO") mScore = 2;
-            else if(s.value === "OPERATIVA CON OBS." && mScore < 2) mScore = 1;
-        });
-        machineColor = mScore === 2 ? "ROJO" : (mScore === 1 ? "AMARILLO" : "VERDE");
-        document.getElementById('statusLed').className = `h-5 w-5 rounded-full ${waterColor === 'ROJO' || machineColor === 'ROJO' ? 'bg-red-600 animate-pulse' : 'bg-green-500'}`;
+        let mS = 0; document.querySelectorAll('.eq-est').forEach(s => { if(s.value==="FUERA DE SERVICIO") mS=2; else if(s.value==="OPERATIVA CON OBS." && mS<2) mS=1; });
+        machineColor = mS===2 ? "ROJO" : (mS===1 ? "AMARILLO" : "VERDE");
+        document.getElementById('statusLed').className = `h-5 w-5 rounded-full ${waterColor==='ROJO'||machineColor==='ROJO'?'bg-red-600 animate-pulse':'bg-green-500'}`;
         saveDraft();
     }
 
-    function addEquipo(val = null) {
-        const div = document.createElement('div');
-        div.className = "card equipo-item border-l-8 border-l-orange-500";
+    function addEquipo(v = null) {
+        const div = document.createElement('div'); div.className = "card equipo-item border-l-8 border-l-orange-500";
         div.innerHTML = `
             <div class="flex justify-between items-center mb-3">
                 <select class="persist-dyn eq-mod font-bold text-orange-600 w-2/3 border-none p-0 bg-transparent">
-                    <option value="Cimbali" ${val?.mod==='Cimbali'?'selected':''}>CIMBALI</option>
-                    <option value="Melitta" ${val?.mod==='Melitta'?'selected':''}>MELITTA</option>
-                    <option value="Otros" ${val?.mod==='Otros'?'selected':''}>OTROS</option>
+                    <option value="Cimbali" ${v?.mod==='Cimbali'?'selected':''}>CIMBALI</option><option value="Melitta" ${v?.mod==='Melitta'?'selected':''}>MELITTA</option><option value="Otros" ${v?.mod==='Otros'?'selected':''}>OTROS</option>
                 </select>
-                <input type="text" placeholder="S/N" class="persist-dyn eq-sn text-xs w-1/3 text-right" value="${val?.sn || ''}">
+                <input type="text" placeholder="S/N" class="persist-dyn eq-sn text-xs w-1/3 text-right" value="${v?.sn||''}">
                 <button type="button" onclick="this.closest('.equipo-item').remove(); evaluarJerarquia();" class="ml-2 text-red-500 font-bold">&times;</button>
             </div>
-            <textarea placeholder="TRABAJO REALIZADO..." class="persist-dyn eq-det text-xs mb-2" rows="2">${val?.det || ''}</textarea>
-            <div class="flex flex-wrap gap-1 mb-2">${TAREAS.map(t => `<span class="tag-btn text-[9px]" onclick="addTask(this, '${t}')">${t}</span>`).join('')}</div>
+            <textarea placeholder="TRABAJO..." class="persist-dyn eq-det text-xs mb-2" rows="2">${v?.det||''}</textarea>
+            <div class="flex flex-wrap gap-1 mb-2">${TAREAS.map(t=>`<span class="tag-btn text-[9px]" onclick="addTask(this,'${t}')">${t}</span>`).join('')}</div>
             <div class="space-y-2 border-t pt-2">
-                <input type="text" placeholder="REPUESTOS UTILIZADOS" class="persist-dyn eq-rep-u text-[10px]" value="${val?.repU || ''}">
-                <input type="text" placeholder="REPUESTOS NECESARIOS (PEDIDO)" class="persist-dyn eq-rep-n text-[10px]" value="${val?.repN || ''}">
-                <div class="flex gap-2">
-                    <input type="text" placeholder="FERRETERÍA" class="persist-dyn eq-fer-desc text-[10px] w-2/3" value="${val?.ferD || ''}">
-                    <input type="number" placeholder="$ COSTO" class="persist-dyn eq-fer-cost text-[10px] w-1/3" value="${val?.ferC || ''}">
-                </div>
+                <input type="text" placeholder="USADOS" class="persist-dyn eq-rep-u text-[10px]" value="${v?.repU||''}">
+                <input type="text" placeholder="PEDIDO" class="persist-dyn eq-rep-n text-[10px]" value="${v?.repN||''}">
+                <div class="flex gap-2"><input type="text" placeholder="FERRETERÍA" class="persist-dyn eq-fer-desc text-[10px] w-2/3" value="${v?.ferD||''}">
+                <input type="number" placeholder="$" class="persist-dyn eq-fer-cost text-[10px] w-1/3" value="${v?.ferC||''}"></div>
                 <select class="persist-dyn eq-est font-bold text-xs" onchange="evaluarJerarquia()">
-                    <option value="OPERATIVA" ${val?.est==='OPERATIVA'?'selected':''}>OPERATIVA</option>
-                    <option value="OPERATIVA CON OBS." ${val?.est==='OPERATIVA CON OBS.'?'selected':''}>OPERATIVA CON OBS.</option>
-                    <option value="FUERA DE SERVICIO" ${val?.est==='FUERA DE SERVICIO'?'selected':''}>FUERA DE SERVICIO</option>
+                    <option value="OPERATIVA" ${v?.est==='OPERATIVA'?'selected':''}>OPERATIVA</option><option value="OPERATIVA CON OBS." ${v?.est==='OPERATIVA CON OBS.'?'selected':''}>OPERATIVA CON OBS.</option><option value="FUERA DE SERVICIO" ${v?.est==='FUERA DE SERVICIO'?'selected':''}>FUERA DE SERVICIO</option>
                 </select>
-            </div>
-        `;
+            </div>`;
         document.getElementById('equiposGrid').appendChild(div);
         div.querySelectorAll('.persist-dyn').forEach(el => el.addEventListener('input', saveDraft));
     }
 
-    function addTask(btn, t) { const area = btn.closest('.equipo-item').querySelector('textarea'); area.value += (area.value ? ', ' : '') + t; saveDraft(); }
+    function addTask(b, t) { const a = b.closest('.equipo-item').querySelector('textarea'); a.value += (a.value ? ', ' : '') + t; saveDraft(); }
+
+    document.getElementById('fotoInput').onchange = async (e) => {
+        const files = Array.from(e.target.files).slice(0, 4); processedImages = [];
+        const prev = document.getElementById('fotoPreview'); prev.innerHTML = "<p class='col-span-4 text-[8px] animate-pulse uppercase'>Procesando Imágenes...</p>";
+        for (const f of files) {
+            const data = await new Promise(res => {
+                const r = new FileReader(); r.onload = (ev) => {
+                    const img = new Image(); img.onload = () => {
+                        const c = document.createElement('canvas'); const s = 800/img.width; c.width = 800; c.height = img.height*s;
+                        c.getContext('2d').drawImage(img, 0,0,800,c.height); res(c.toDataURL('image/jpeg', 0.7));
+                    }; img.src = ev.target.result;
+                }; r.readAsDataURL(f);
+            });
+            processedImages.push(data);
+        }
+        prev.innerHTML = ''; processedImages.forEach(img => { const d = document.createElement('div'); d.className = "h-12 border-2 border-orange-500 rounded bg-cover bg-center"; d.style.backgroundImage = `url(${img})`; prev.appendChild(d); });
+    };
 
     function saveDraft() {
-        const data = {
+        const d = {
             c: { fe: document.getElementById('fecha').value, l: document.getElementById('local').value, ss: document.getElementById('siglaSis').value, st: document.getElementById('siglaTic').value, t: document.getElementById('ticket').value, tec: document.getElementById('tecnico').value, p: document.getElementById('ppm').value, f: document.getElementById('f_filtrado').value, a: document.getElementById('f_ablandador').value, o: document.getElementById('f_osmosis').value, lab: document.getElementById('labor').value, via: document.getElementById('viaticos').value, op: document.getElementById('obsPrevias').value, of: document.getElementById('obsFinales').value, enc: document.getElementById('nombreEncargado').value },
             e: Array.from(document.querySelectorAll('.equipo-item')).map(eq => ({ mod: eq.querySelector('.eq-mod').value, sn: eq.querySelector('.eq-sn').value, det: eq.querySelector('.eq-det').value, repU: eq.querySelector('.eq-rep-u').value, repN: eq.querySelector('.eq-rep-n').value, ferD: eq.querySelector('.eq-fer-desc').value, ferC: eq.querySelector('.eq-fer-cost').value, est: eq.querySelector('.eq-est').value }))
         };
-        localStorage.setItem('mostaza_elite_v99', JSON.stringify(data));
+        localStorage.setItem('mostaza_elite_v10', JSON.stringify(d));
     }
 
     function loadDraft() {
-        const raw = localStorage.getItem('mostaza_elite_v99'); if (!raw) return;
-        const d = JSON.parse(raw);
-        document.getElementById('fecha').value = d.c.fe || ''; document.getElementById('local').value = d.c.l || ''; document.getElementById('siglaSis').value = d.c.ss || '';
-        document.getElementById('siglaTic').value = d.c.st || ''; document.getElementById('ticket').value = d.c.t || ''; document.getElementById('tecnico').value = d.c.tec || '';
-        document.getElementById('ppm').value = d.c.p || ''; document.getElementById('f_filtrado').value = d.c.f || 'OP'; document.getElementById('f_ablandador').value = d.c.a || 'OP';
-        document.getElementById('f_osmosis').value = d.c.o || 'N/A'; document.getElementById('labor').value = d.c.lab || ''; document.getElementById('viaticos').value = d.c.via || '';
-        document.getElementById('obsPrevias').value = d.c.op || ''; document.getElementById('obsFinales').value = d.c.of || ''; document.getElementById('nombreEncargado').value = d.c.enc || '';
+        const r = localStorage.getItem('mostaza_elite_v10'); if (!r) return;
+        const d = JSON.parse(r); document.getElementById('fecha').value = d.c.fe||''; document.getElementById('local').value = d.c.l||''; document.getElementById('siglaSis').value = d.c.ss||'';
+        document.getElementById('siglaTic').value = d.c.st||''; document.getElementById('ticket').value = d.c.t||''; document.getElementById('tecnico').value = d.c.tec||''; document.getElementById('ppm').value = d.c.p||'';
+        document.getElementById('f_filtrado').value = d.c.f||'OP'; document.getElementById('f_ablandador').value = d.c.a||'OP'; document.getElementById('f_osmosis').value = d.c.o||'N/A';
+        document.getElementById('labor').value = d.c.lab||''; document.getElementById('viaticos').value = d.c.via||''; document.getElementById('obsPrevias').value = d.c.op||''; document.getElementById('obsFinales').value = d.c.of||''; document.getElementById('nombreEncargado').value = d.c.enc||'';
         if (d.e) { document.getElementById('equiposGrid').innerHTML = ''; d.e.forEach(eq => addEquipo(eq)); }
     }
 
@@ -240,44 +221,18 @@
 
     function generarPDF() {
         const { jsPDF } = window.jspdf; const doc = new jsPDF();
-        doc.setFillColor(26,26,27); doc.rect(0,0,210,20,'F'); doc.setTextColor(245,130,32); doc.setFontSize(14); doc.text("INFORME TÉCNICO ELITE V9.9", 15, 13);
-        
-        doc.setTextColor(0); doc.setFontSize(9);
-        doc.text(`FECHA: ${document.getElementById('fecha').value} | TICKET: ${document.getElementById('ticket').value}`, 15, 30);
-        doc.text(`LOCAL: ${document.getElementById('local').value} (${document.getElementById('siglaSis').value} / ${document.getElementById('siglaTic').value})`, 15, 36);
+        doc.setFillColor(26,26,27); doc.rect(0,0,210,20,'F'); doc.setTextColor(245,130,32); doc.setFontSize(14); doc.text("INFORME TÉCNICO ELITE V10.0", 15, 13);
+        doc.setTextColor(0); doc.setFontSize(9); doc.text(`FECHA: ${document.getElementById('fecha').value} | TICKET: ${document.getElementById('ticket').value}`, 15, 30);
+        doc.text(`LOCAL: ${document.getElementById('local').value} (${document.getElementById('siglaTic').value})`, 15, 36);
         doc.text(`TÉCNICO: ${document.getElementById('tecnico').value} | LABOR: ${document.getElementById('labor').value} Hs | VIÁTICOS: $${document.getElementById('viaticos').value}`, 15, 42);
-
-        doc.setFont("helvetica", "bold"); doc.text("CALIDAD DE AGUA:", 15, 50);
-        const cA = getSemCol(waterColor); doc.setFillColor(cA[0], cA[1], cA[2]); doc.circle(48, 49, 3, 'F'); doc.setTextColor(cA[0], cA[1], cA[2]); doc.text(waterColor, 53, 50);
-        doc.setTextColor(0); doc.setFont("helvetica", "normal"); doc.setFontSize(8);
-        doc.text(`PPM: ${document.getElementById('ppm').value} | FILTRO: ${document.getElementById('f_filtrado').value} | ABLANDADOR: ${document.getElementById('f_ablandador').value} | ÓSMOSIS: ${document.getElementById('f_osmosis').value}`, 15, 55);
-
-        doc.setFontSize(9); doc.setFont("helvetica", "bold"); doc.text("OBS. INICIALES:", 15, 62);
-        doc.setFont("helvetica", "normal"); doc.setFontSize(8);
-        const pLines = doc.splitTextToSize(document.getElementById('obsPrevias').value, 180); doc.text(pLines, 15, 67);
-
-        let y = 75 + (pLines.length * 4);
-        document.querySelectorAll('.equipo-item').forEach((eq, i) => {
-            if(y > 240) { doc.addPage(); y = 20; }
-            doc.setFontSize(9); doc.setFont("helvetica", "bold"); doc.text(`${i+1}. ${eq.querySelector('.eq-mod').value} (SN: ${eq.querySelector('.eq-sn').value}) - ${eq.querySelector('.eq-est').value}`, 15, y);
-            doc.setFont("helvetica", "normal"); doc.setFontSize(8);
-            const detLines = doc.splitTextToSize(eq.querySelector('.eq-det').value, 180); doc.text(detLines, 15, y+5);
-            y += (detLines.length * 4) + 8;
-            doc.text(`USADOS: ${eq.querySelector('.eq-rep-u').value} | PEDIDO: ${eq.querySelector('.eq-rep-n').value}`, 15, y); y += 4;
-            doc.text(`FERRETERÍA: ${eq.querySelector('.eq-fer-desc').value} ($${eq.querySelector('.eq-fer-cost').value})`, 15, y); y += 10;
-        });
-
-        if(y > 240) { doc.addPage(); y = 20; }
-        doc.setFontSize(9); doc.setFont("helvetica", "bold"); doc.text("OBS. CIERRE:", 15, y);
-        doc.setFont("helvetica", "normal"); doc.setFontSize(8);
-        const fLines = doc.splitTextToSize(document.getElementById('obsFinales').value, 180); doc.text(fLines, 15, y+5);
-
-        doc.addPage(); doc.text("VALIDACIÓN Y FIRMAS", 15, 20);
-        doc.addImage(padT.toDataURL(),'PNG',15,30,60,30); doc.addImage(padE.toDataURL(),'PNG',120,30,60,30);
-        doc.text("FIRMA TÉCNICO", 15, 65); doc.text(`ENCARGADO: ${document.getElementById('nombreEncargado').value}`, 120, 65);
+        doc.setFont("helvetica", "bold"); doc.text("CALIDAD DE AGUA:", 15, 50); const cA = getSemCol(waterColor); doc.setFillColor(cA[0],cA[1],cA[2]); doc.circle(48, 49, 3, 'F'); doc.setTextColor(cA[0],cA[1],cA[2]); doc.text(waterColor, 53, 50);
+        doc.setTextColor(0); doc.setFont("helvetica", "normal"); doc.setFontSize(8); doc.text(`PPM: ${document.getElementById('ppm').value} | FILTRO: ${document.getElementById('f_filtrado').value} | ABLANDADOR: ${document.getElementById('f_ablandador').value} | ÓSMOSIS: ${document.getElementById('f_osmosis').value}`, 15, 55);
+        doc.setFontSize(9); doc.setFont("helvetica", "bold"); doc.text("OBS. INICIALES:", 15, 62); doc.setFont("helvetica", "normal"); doc.setFontSize(8); const pL = doc.splitTextToSize(document.getElementById('obsPrevias').value, 180); doc.text(pL, 15, 67);
+        let y = 75 + (pL.length * 4); document.querySelectorAll('.equipo-item').forEach((eq, i) => { if(y > 240) { doc.addPage(); y = 20; } doc.setFontSize(9); doc.setFont("helvetica", "bold"); doc.text(`${i+1}. ${eq.querySelector('.eq-mod').value} (SN: ${eq.querySelector('.eq-sn').value}) - ${eq.querySelector('.eq-est').value}`, 15, y); doc.setFont("helvetica", "normal"); doc.setFontSize(8); const dL = doc.splitTextToSize(eq.querySelector('.eq-det').value, 180); doc.text(dL, 15, y+5); y += (dL.length * 4) + 8; doc.text(`USADOS: ${eq.querySelector('.eq-rep-u').value} | PEDIDO: ${eq.querySelector('.eq-rep-n').value}`, 15, y); y += 4; doc.text(`FERRETERÍA: ${eq.querySelector('.eq-fer-desc').value} ($${eq.querySelector('.eq-fer-cost').value})`, 15, y); y += 10; });
+        if(processedImages.length > 0) { doc.addPage(); doc.setFontSize(10); doc.text("EVIDENCIA FOTOGRÁFICA", 15, 20); processedImages.forEach((img, i) => doc.addImage(img, 'JPEG', 15+(i%2*95), 30+(Math.floor(i/2)*75), 90, 70)); }
+        doc.addPage(); doc.text("VALIDACIÓN Y FIRMAS", 15, 20); doc.addImage(padT.toDataURL(),'PNG',15,30,60,30); doc.addImage(padE.toDataURL(),'PNG',120,30,60,30); doc.text("FIRMA TÉCNICO", 15, 65); doc.text(`ENCARGADO: ${document.getElementById('nombreEncargado').value}`, 120, 65);
         doc.save(`Mostaza_${document.getElementById('siglaTic').value}_${document.getElementById('fecha').value}.pdf`);
     }
-
     function resetAll() { if(confirm("¿BORRAR TODO?")) { localStorage.clear(); location.reload(); } }
 </script>
 </body>
