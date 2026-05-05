@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>SISTEMA ELITE V11.3 - ESTABILIZACIÓN FINAL</title>
+    <title>SISTEMA ELITE V11.5 - RESUMEN LED-ONLY</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/signature_pad@4.0.0/dist/signature_pad.umd.min.js"></script>
@@ -24,7 +24,7 @@
 <header class="bg-[#1A1A1B] text-white p-4 sticky top-0 z-50 flex justify-between items-center border-b-4 border-[#F58220]">
     <div class="flex items-center gap-3">
         <div id="statusLed" class="h-5 w-5 rounded-full bg-gray-500"></div>
-        <h1 class="text-lg font-bold uppercase">Mostaza <span class="text-[#F58220]">Elite V11.3</span></h1>
+        <h1 class="text-lg font-bold uppercase">Mostaza <span class="text-[#F58220]">Elite V11.5</span></h1>
     </div>
     <button onclick="resetAll()" class="bg-red-700 p-2 rounded text-[10px] font-bold text-white uppercase">Limpiar Todo</button>
 </header>
@@ -111,7 +111,7 @@
             </div>
         </div>
 
-        <button type="button" onclick="generarPDF()" class="w-full bg-[#F58220] text-white py-4 text-xl font-black uppercase rounded shadow-xl border-b-4 border-orange-800">Generar Informe V11.3</button>
+        <button type="button" onclick="generarPDF()" class="w-full bg-[#F58220] text-white py-4 text-xl font-black uppercase rounded shadow-xl border-b-4 border-orange-800">Generar Informe V11.5</button>
     </form>
 </main>
 
@@ -357,38 +357,62 @@
             doc.text("FIRMA TÉCNICO RESPONSABLE", 15, curY+35); 
             doc.text(`CONFORMIDAD LOCAL: ${document.getElementById('nombreEncargado').value || 'ENCARGADO'}`, 120, curY+35);
 
-            // --- PÁGINA 2: RESUMEN EJECUTIVO ---
+            // --- PÁGINA 2: RESUMEN EJECUTIVO (LED-ONLY EDITION V11.5) ---
             doc.addPage();
-            doc.setFillColor(245, 130, 32); doc.rect(0, 0, 210, 35, 'F');
-            doc.setTextColor(255); doc.setFontSize(16); doc.text("RESUMEN DE SERVICIO PARA GERENCIA", 105, 18, {align:'center'});
-            doc.setFontSize(10); doc.text(`MOSTA-SYSTEM ELITE V11.3 | PROYECTO HERMES`, 105, 26, {align:'center'});
+            let resY = 15;
+
+            // Header Corporativo en Resumen
+            doc.setFillColor(200, 0, 0); doc.circle(105, 12, 7, 'F');
+            doc.setTextColor(255); doc.setFontSize(14); doc.setFont("helvetica", "bold");
+            doc.text("M", 105, 14, {align:'center'});
+            doc.setFontSize(10); doc.setTextColor(0);
+            doc.text("MOSTAZA MANTENIMIENTO FRANQUICIAS", 105, 23, {align:'center'});
             
-            doc.setTextColor(0); doc.setFontSize(10); let resY = 45;
-            doc.setFont("helvetica", "bold"); doc.text("DATOS GENERALES:", 15, resY); doc.setFont("helvetica", "normal");
+            doc.setFillColor(245, 130, 32); doc.rect(15, 28, 180, 10, 'F');
+            doc.setTextColor(255); doc.setFontSize(12); doc.text("RESUMEN DE ESTADO PARA GERENCIA", 105, 34.5, {align:'center'});
+            
+            doc.setTextColor(0); doc.setFontSize(10); resY = 50;
+            doc.setFont("helvetica", "bold"); doc.text("DATOS DE CONTROL:", 15, resY); doc.setFont("helvetica", "normal");
             doc.text(`LOCAL: ${document.getElementById('local').value}`, 15, resY + 7);
             doc.text(`TICKET: ${document.getElementById('ticket').value} | FECHA: ${document.getElementById('fecha').value}`, 110, resY + 7);
             resY += 20;
 
-            doc.setFont("helvetica", "bold"); doc.text("SALUD DE LA INSTALACIÓN:", 15, resY); doc.setFont("helvetica", "normal");
-            doc.text(`ESTADO AGUA: ${waterColor} (${document.getElementById('ppm').value} PPM)`, 15, resY + 7);
-            const insCrit = Array.from(document.querySelectorAll('.s-past, .s-liq, .s-sal')).filter(s => s.value === 'CRÍTICO').length;
-            doc.setTextColor(insCrit > 0 ? [200, 0, 0] : [0, 150, 0]);
-            doc.text(`STOCK INSUMOS: ${insCrit > 0 ? 'ALERTA: FALTANTES DETECTADOS' : 'STOCK COMPLETO'}`, 110, resY + 7);
-            doc.setTextColor(0);
-            resY += 20;
+            doc.setFont("helvetica", "bold"); doc.text("ESTADO DE SALUD HÍDRICA:", 15, resY); doc.setFont("helvetica", "normal");
+            doc.text("AGUA:", 15, resY + 7); 
+            const cA_Res = getSemCol(waterColor); doc.setFillColor(cA_Res[0], cA_Res[1], cA_Res[2]); 
+            doc.circle(32, resY + 6, 3, 'F'); // LED de Agua Único
+            doc.text(`LECTURA: ${document.getElementById('ppm').value} PPM`, 45, resY + 7);
             
-            doc.setFont("helvetica", "bold"); doc.text("ACCIÓN REQUERIDA / REPUESTOS:", 15, resY); resY += 8;
+            const insCrit_Res = Array.from(document.querySelectorAll('.s-past, .s-liq, .s-sal')).filter(s => s.value === 'CRÍTICO').length;
+            doc.setTextColor(insCrit_Res > 0 ? [200, 0, 0] : [0, 150, 0]);
+            doc.setFont("helvetica", "bold");
+            doc.text(`INSUMOS: ${insCrit_Res > 0 ? 'FALTANTES DETECTADOS' : 'STOCK COMPLETO'}`, 110, resY + 7);
+            doc.setTextColor(0); resY += 20;
+            
+            doc.setFont("helvetica", "bold"); doc.text("ACCIONES Y ESTADO POR EQUIPO:", 15, resY); resY += 10;
             doc.setFont("helvetica", "normal");
+            
             document.querySelectorAll('.equipo-item').forEach(eq => {
-                const rep = eq.querySelector('.eq-rep-n').value;
-                doc.text(`- ${eq.querySelector('.eq-mod').value}: ${rep || 'Sin pedidos adicionales'}`, 20, resY); resY += 6;
+                const status = eq.querySelector('.eq-est').value;
+                let sCol = [0, 150, 0];
+                if(status.includes("OBS")) sCol = [255, 191, 0];
+                if(status.includes("FUERA")) sCol = [200, 0, 0];
+                
+                doc.setFillColor(sCol[0], sCol[1], sCol[2]); doc.circle(18, resY - 1, 2, 'F'); // LED Individual
+                doc.setFont("helvetica", "bold");
+                doc.text(`${eq.querySelector('.eq-mod').value} (SN: ${eq.querySelector('.eq-sn').value}):`, 25, resY);
+                resY += 5;
+                doc.setFont("helvetica", "normal"); doc.setFontSize(9);
+                doc.text(`-> PEDIDO: ${eq.querySelector('.eq-rep-n').value || 'Sin pedidos adicionales'}`, 25, resY);
+                resY += 8;
+                doc.setFontSize(10);
             });
 
-            // Footer Institucional en todas las páginas
+            // Footer Inmutable
             const pCount = doc.internal.getNumberOfPages();
             for(let i = 1; i <= pCount; i++) { 
                 doc.setPage(i); doc.setFontSize(7); doc.setTextColor(150); 
-                doc.text("Mantenimiento Franquicias Mostaza - Documento de Control Interno", 105, 290, {align:'center'}); 
+                doc.text("Mostaza Mantenimiento Franquicias - Control Interno Regional", 105, 290, {align:'center'}); 
             }
 
             const fname = document.getElementById('siglaTic').value || 'Reporte';
