@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>SISTEMA ELITE V11.6 - HARDENED RECTIFICATION</title>
+    <title>MOSTAZA MANTENIMIENTO FRANQUICIAS V11.7</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/signature_pad@4.0.0/dist/signature_pad.umd.min.js"></script>
@@ -24,7 +24,7 @@
 <header class="bg-[#1A1A1B] text-white p-4 sticky top-0 z-50 flex justify-between items-center border-b-4 border-[#F58220]">
     <div class="flex items-center gap-3">
         <div id="statusLed" class="h-5 w-5 rounded-full bg-gray-500"></div>
-        <h1 class="text-lg font-bold uppercase">Mostaza <span class="text-[#F58220]">Elite V11.6</span></h1>
+        <h1 class="text-xs sm:text-lg font-bold uppercase">Mostaza <span class="text-[#F58220]">Mantenimiento Franquicias V11.7</span></h1>
     </div>
     <button onclick="resetAll()" class="bg-red-700 p-2 rounded text-[10px] font-bold text-white uppercase">Limpiar Todo</button>
 </header>
@@ -111,17 +111,49 @@
             </div>
         </div>
 
-        <button type="button" onclick="generarPDF()" class="w-full bg-[#F58220] text-white py-4 text-xl font-black uppercase rounded shadow-xl border-b-4 border-orange-800">Generar Informe V11.6</button>
+        <button type="button" onclick="generarPDF()" class="w-full bg-[#F58220] text-white py-4 text-xl font-black uppercase rounded shadow-xl border-b-4 border-orange-800">Generar Informe V11.7</button>
     </form>
 </main>
 
 <script>
     const DB_LOCALES = [
-        { n: "VILLA DEL PARQUE", s: "FVDP", t: "FVDP" }, { n: "SAN JUSTO", s: "FSJU", t: "FCSJ3" },
-        { n: "LAFERRERE 2", s: "FLF2", t: "FLF2" }, { n: "RAMOS", s: "-", t: "FMRAM" },
-        { n: "EZEIZA", s: "FEZE", t: "FEZEA" }, { n: "CANNING", s: "FMCAN", t: "FMCAN" },
-        { n: "MONTEGRANDE", s: "FMGD", t: "FMGRA" }, { n: "ZARATE", s: "FZAR", t: "FMZAR" },
-        { n: "GUALEGUAYCHU", s: "-", t: "FMGUA" }, { n: "CABILDO", s: "FCAB", t: "FCABI" }
+        { n: "VILLA DEL PARQUE", s: "FVDP", t: "FVDP" }, { n: "SAN JUSTO", s: "FSJU", t: "FCSJ3" }, { n: "LAFERRERE 2", s: "FLF2", t: "FLF2" },
+        { n: "RAMOS", s: "FMRAM", t: "FMRAM" }, { n: "EZEIZA", s: "FEZE", t: "FEZEA" }, { n: "CANNING", s: "FMCAN", t: "FMCAN" },
+        { n: "MONTEGRANDE", s: "FMGD", t: "FMGRA" }, { n: "ZARATE", s: "FZAR", t: "FMZAR" }, { n: "GUALEGUAYCHU", s: "FMGUA", t: "FMGUA" },
+        { n: "CABILDO", s: "FCAB", t: "FCABI" }, { n: "CABILDO 2", s: "FMCYM", t: "FMCYM" }, { n: "GUEMES", s: "FGUE", t: "FGUE" },
+        { n: "URQUIZA", s: "FURQ", t: "FMURQ" }, { n: "PALMAS PILAR", s: "FPPI", t: "FPMPI" }, { n: "SAN ISIDRO", s: "FSIS", t: "FMSIS" },
+        { n: "LA RIOJA", s: "FMRVP", t: "FMRVP" }, { n: "CATAMARCA", s: "FCAT", t: "FMCAT" }, { n: "F. ALVAREZ", s: "FFRA", t: "FFRA" },
+        { n: "MORENO", s: "FMORE", t: "FMMRE" }, { n: "LUJAN", s: "FLUJ", t: "FLUJA" }, { n: "SAN MARTIN 2", s: "FMSVP", t: "FMSVP" },
+        { n: "SAN MARTIN AUTO", s: "FSMA", t: "F3DF" }, { n: "SAN JUAN", s: "FSJN", t: "FSJUA" }, { n: "SAN JUAN 2", s: "FSJ2", t: "FMSJ2" },
+        { n: "TUCUMAN 2", s: "FTU2", t: "FMTCM" }, { n: "TUCUMAN 3", s: "FTU3", t: "FMTM2" }, { n: "TUCUMAN 4", s: "FTU4", t: "FMTU4" },
+        { n: "TUCUMAN 5", s: "FTC5", t: "FTC5" }, { n: "TUCUMAN 6", s: "FTC6", t: "FMTU6" }, { n: "TUCUMAN 7", s: "FMTU7", t: "FMTU7" },
+        { n: "TUCUMAN 8", s: "FTC8", t: "FMTC8" }, { n: "PORTAL TUCUMAN", s: "MPT", t: "MPT" }, { n: "TUCUMAN 9", s: "FMTU9", t: "FMTU9" },
+        { n: "QUILMES P.", s: "FQUP", t: "FMQCA" }, { n: "LA PLATA 2", s: "FLP2", t: "FLPCA" }, { n: "LA PLATA 3", s: "FLP3", t: "FLPC3" },
+        { n: "LA PLATA 4", s: "FLP4", t: "FLPC4" }, { n: "LA PLATA 6", s: "FLP6", t: "FLPC6" }, { n: "CITY BELL", s: "FCYB", t: "FMCB1" },
+        { n: "REPUBLICA", s: "FRDN", t: "FRPNI" }, { n: "S DEL ESTERO", s: "FSDE", t: "FSANT" }, { n: "MENDOZA CENTRO", s: "FMMSM", t: "FMMSM" },
+        { n: "MENDOZA COLON", s: "FMMCO", t: "FMMCO" }, { n: "SAN RAFAEL", s: "FSRM", t: "FSRM" }, { n: "GONNET", s: "FGON", t: "FGONN" },
+        { n: "BERAZATEGUI", s: "FBER", t: "FMBER" }, { n: "ROTONDA", s: "FMRG", t: "FROG" }, { n: "LOMAS AUTO", s: "FLOZ", t: "FMLOA" },
+        { n: "LOMAS", s: "FMLCA", t: "FMLCA" }, { n: "WILDE", s: "FMWVP", t: "FMWVP" }, { n: "BARILOCHE", s: "FBA1", t: "FMBRC" },
+        { n: "USHUAIA", s: "FUSH", t: "FUSHA" }, { n: "RIO GRANDE", s: "FRGD", t: "FRGRD" }, { n: "PORTAL SALTA", s: "FPSA", t: "FTART" },
+        { n: "SALTA LIBERTAD", s: "FSLI", t: "FSLIB" }, { n: "SALTA PEATONAL", s: "FSVP", t: "FSAL4" }, { n: "SALTA AUTO", s: "FSAA", t: "FMSAA" },
+        { n: "SALTA NOA", s: "MSN", t: "MSN" }, { n: "JUJUY", s: "FJUJ", t: "FJUJY" }, { n: "SALTA ORAN", s: "FSAO", t: "FSAO" },
+        { n: "PARQUE CHAC", s: "FPCH", t: "FMPCH" }, { n: "CONSTITUCION", s: "FMCNT", t: "FMCNT" }, { n: "SPINETTO", s: "FSPI", t: "FSPIN" },
+        { n: "LANUS 2", s: "FLA2", t: "FMLAC" }, { n: "CARRE QUILMES", s: "FCQU", t: "FCFQU" }, { n: "LA PAMPA", s: "FLPA", t: "FROSA" },
+        { n: "FORMOSA", s: "FMFOR", t: "FMFOR" }, { n: "FLORES", s: "FFLO", t: "FFLOR" }, { n: "PRIMERA JUNTA", s: "FMPRI", t: "FMPRI" },
+        { n: "LINIERS", s: "FLIN", t: "FLINR" }, { n: "ONCE", s: "FMONC", t: "FMONC" }, { n: "TERRADA", s: "-", t: "-" },
+        { n: "BOLIVAR", s: "FBOL", t: "FMBLV" }, { n: "JUNIN", s: "FMJUN", t: "FMJUN" }, { n: "RIO GALLEGOS", s: "FRGA", t: "-" },
+        { n: "POMPEYA", s: "FMPYA", t: "FMPYA" }, { n: "GALLEGOS", s: "FMP1", t: "FMDQG" }, { n: "ALDREY", s: "FMP2", t: "FMDQ2" },
+        { n: "LA PERLA", s: "FMD3", t: "FMP3" }, { n: "PEATONAL", s: "FMDQ4", t: "FMDQ4" }, { n: "OLAVARRIA", s: "FOLAV", t: "FOLAV" },
+        { n: "TANDIL", s: "FCTA", t: "FTAND" }, { n: "SAN FERNANDO", s: "FSAF", t: "FSAF" }, { n: "GRAND BOURG", s: "FGBG", t: "FGRBG" },
+        { n: "JOSE C PAZ", s: "FJCP", t: "FMJCP" }, { n: "SAN MIGUEL 3", s: "FSM2", t: "FMSM3" }, { n: "SAN MIGUEL A.", s: "FMSMA", t: "FMSMA" },
+        { n: "MERLO", s: "FMER", t: "FMERL" }, { n: "CORRIENTES", s: "FCOR", t: "FMCOR" }, { n: "RESISTENCIA", s: "FMRES", t: "FMRES" },
+        { n: "SAN LUIS", s: "FSLS", t: "FMSLI" }, { n: "BOEDO", s: "FBOE", t: "FMBOE" }, { n: "SAN TELMO", s: "FSTM", t: "FMSTO" },
+        { n: "AV DE MAYO", s: "FAVM", t: "FAMAY" }, { n: "AV DE MAYO 2", s: "FAVM2", t: "FAMA2" }, { n: "9 DE JULIO", s: "F9DJ", t: "FM9JU" },
+        { n: "CALLAO", s: "FMCYC", t: "FMCYC" }, { n: "RAFAELA", s: "FRAF", t: "FRAFA" }, { n: "RIBERA SANTA FE", s: "FRSF", t: "FSFER" },
+        { n: "WALMART STA FE", s: "FWSF", t: "FSFEW" }, { n: "SANTA FE P.", s: "FMSFV", t: "FMSFV" }, { n: "PORTAL ROSARIO", s: "FPRO", t: "FPROS" },
+        { n: "PELLEGRINI", s: "FPEL", t: "FMROS" }, { n: "ROSARIO SUR", s: "FRSM", t: "FRSM" }, { n: "OROÑO", s: "FROA", t: "FORO" },
+        { n: "SAN NICOLAS", s: "FMSNI", t: "FMSNI" }, { n: "PUMA", s: "FMPUM", t: "FMPUM" }, { n: "FUNES", s: "FMPUM", t: "FMFUN" },
+        { n: "ALTO ROSARIO", s: "MAR", t: "MAR" }, { n: "CITY CENTER", s: "MCR", t: "MCR" }
     ];
 
     let padT, padE, processedImages = [], locks = { T: false, E: false }, waterColor = "VERDE";
