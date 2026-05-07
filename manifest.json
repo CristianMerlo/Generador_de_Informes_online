@@ -1,0 +1,16 @@
+{
+  "name": "Mostaza Mantenimiento Franquicias",
+  "short_name": "Elite",
+  "start_url": "index.html",
+  "display": "standalone",
+  "background_color": "#1A1A1B",
+  "theme_color": "#F58220",
+  "icons": [
+    {
+      "src": "data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNTEyIiBoZWlnaHQ9IjUxMiIgdmlld0JveD0iMCAwIDUxMiA1MTIiIGZpbGw9Im5vbmUiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+PGNpcmNsZSBjeD0iMjU2IiBjeT0iMjU2IiByPSIyNTYiIGZpbGw9IiNDODAwMDAiLz48dGV4dCB4PSI1MCUiIHk9IjUyJSIgdGV4dC1hbmNob3I9Im1pZGRsZSIgZmlsbD0id2hpdGUiIGZvbnQtZmFtaWx5PSJBcmlhbCIgZm9udC1zaXplPSIyODAiIGZvbnQtd2VpZ2h0PSJib2xkIiBkeT0iLmx0Ij5NPC90ZXh0Pjwvc3ZnPg==",
+      "sizes": "512x512",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ]
+}
