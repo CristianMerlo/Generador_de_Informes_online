@@ -3,21 +3,25 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>MOSTAZA MANTENIMIENTO FRANQUICIAS V12.4</title>
+    <title>MANTENIMIENTO FRANQUICIAS V12.5</title>
+    
     <link rel="manifest" href="manifest.json">
     <meta name="theme-color" content="#1A1A1B">
     <meta name="mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta name="apple-mobile-web-app-title" content="Informes">
+    
     <link rel="apple-touch-icon" href="data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNTEyIiBoZWlnaHQ9IjUxMiIgdmlld0JveD0iMCAwIDUxMiA1MTIiIGZpbGw9Im5vbmUiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+PGNpcmNsZSBjeD0iMjU2IiBjeT0iMjU2IiByPSIyNTYiIGZpbGw9IiNDODAwMDAiLz48dGV4dCB4PSI1MCUiIHk9IjUyJSIgdGV4dC1hbmNob3I9Im1pZGRsZSIgZmlsbD0id2hpdGUiIGZvbnQtZmFtaWx5PSJBcmlhbCIgZm9udC1zaXplPSIyODAiIGZvbnQtd2VpZ2h0PSJib2xkIiBkeT0iLmx0Ij5NPC90ZXh0Pjwvc3ZnPg==">
+
     <script>
       if ('serviceWorker' in navigator) {
         window.addEventListener('load', () => {
-          navigator.serviceWorker.register('sw.js')
-            .then(reg => console.log('PWA Lista'))
-            .catch(err => console.log('Error PWA', err));
+          navigator.serviceWorker.register('sw.js').catch(err => console.error('PWA Error', err));
         });
       }
     </script>
+
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/signature_pad@4.0.0/dist/signature_pad.umd.min.js"></script>
@@ -38,14 +42,13 @@
 <header class="bg-[#1A1A1B] text-white p-4 sticky top-0 z-50 flex justify-between items-center border-b-4 border-[#F58220]">
     <div class="flex items-center gap-3">
         <div id="statusLed" class="h-5 w-5 rounded-full bg-gray-500"></div>
-        <h1 class="text-xs sm:text-lg font-bold uppercase">Mostaza <span class="text-[#F58220]">Mantenimiento Franquicias V12.4</span></h1>
+        <h1 class="text-xs sm:text-lg font-bold uppercase">Mostaza <span class="text-[#F58220]">Mantenimiento Franquicias V12.5</span></h1>
     </div>
     <button onclick="resetAll()" class="bg-red-700 p-2 rounded text-[10px] font-bold text-white uppercase">Limpiar Todo</button>
 </header>
 
 <main class="max-w-2xl mx-auto p-3">
     <form id="mainForm">
-        <!-- 1. ADMIN -->
         <div class="card border-l-8 border-l-orange-500">
             <h3 class="text-xs font-black uppercase text-gray-500 mb-3 border-b">1. Datos de la Intervención</h3>
             <div class="grid grid-cols-6 gap-2">
@@ -63,6 +66,8 @@
                         <option value="Francisco Rametta">FRANCISCO RAMETTA</option>
                     </select>
                 </div>
+                <div class="col-span-3 mt-2"><label>Tiempo de Labor</label><input type="text" id="labor" class="persist" placeholder="00:00 hs"></div>
+                <div class="col-span-3 mt-2"><label>Gasto de Viático ($)</label><input type="number" id="viaticos" class="persist font-bold text-green-700" placeholder="0.00"></div>
                 <div class="col-span-6 mt-2">
                     <label>Prioridad / Tipo de Servicio</label>
                     <select id="prioridad" class="persist font-bold text-blue-700">
@@ -74,12 +79,9 @@
                         <option value="GARANTIA">CARÁCTER DE GARANTÍA</option>
                     </select>
                 </div>
-                <div class="col-span-3 mt-2"><label>Tiempo de Labor</label><input type="text" id="labor" class="persist" placeholder="00:00 hs"></div>
-                <div class="col-span-3 mt-2"><label>Gasto de Viático ($)</label><input type="number" id="viaticos" class="persist font-bold text-green-700" placeholder="0.00"></div>
             </div>
         </div>
 
-        <!-- 2. AGUA -->
         <div class="card border-l-8 border-l-blue-500">
             <h3 class="text-xs font-black uppercase text-blue-600 mb-3 border-b">2. Calidad de Agua</h3>
             <div class="space-y-4">
@@ -91,7 +93,7 @@
                 </div>
                 <div class="mt-3">
                     <label>Detalle de Instalación Hídrica</label>
-                    <textarea id="obsAgua" class="persist text-xs" rows="2" placeholder="Observaciones de cañerías, desagotes, ubicación de sistema de filtrado..."></textarea>
+                    <textarea id="obsAgua" class="persist text-xs" rows="2" placeholder="Detalle cañerías, desagotes, ubicación..."></textarea>
                 </div>
             </div>
         </div>
@@ -131,7 +133,7 @@
             </div>
         </div>
 
-        <button type="button" onclick="generarPDF()" class="w-full bg-[#F58220] text-white py-4 text-xl font-black uppercase rounded shadow-xl border-b-4 border-orange-800">Generar Informe V12.4</button>
+        <button type="button" onclick="generarPDF()" class="w-full bg-[#F58220] text-white py-4 text-xl font-black uppercase rounded shadow-xl border-b-4 border-orange-800">Generar Informe V12.5</button>
     </form>
 </main>
 
@@ -234,19 +236,26 @@
             <textarea placeholder="DIAGNÓSTICO..." class="persist-dyn eq-diag text-xs mb-2" rows="2">${v?.diag||''}</textarea>
             <textarea placeholder="TRABAJOS REALIZADOS..." class="persist-dyn eq-det text-xs mb-2" rows="2">${v?.det||''}</textarea>
             <div class="flex flex-wrap gap-1 mb-2">${TAREAS.map(t=>`<span class="tag-btn text-[9px]" onclick="addTask(this,'${t}')">${t}</span>`).join('')}</div>
+            
             <div class="card bg-gray-50 border-none p-2 mt-2">
+                <label class="text-blue-800 font-black mb-1">Higiene Equipo</label>
                 <div class="grid grid-cols-2 gap-2">
-                    <div><label class="text-[7px]">Lancetas</label><select class="persist-dyn h-lanc text-[10px] font-bold"><option value="OP" ${v?.hL==='OP'?'selected':''}>OP</option><option value="SUCIO" ${v?.hL==='SUCIO'?'selected':''}>SUCIO</option></select></div>
-                    <div><label class="text-[7px]">Tolvas</label><select class="persist-dyn h-tolv text-[10px] font-bold"><option value="OP" ${v?.hT==='OP'?'selected':''}>OP</option><option value="SUCIO" ${v?.hT==='SUCIO'?'selected':''}>SUCIO</option></select></div>
+                    <div><label class="text-[7px]">Lancetas Vapor</label><select class="persist-dyn h-lanc text-[10px] font-bold"><option value="OP" ${v?.hL==='OP'?'selected':''}>OP</option><option value="SUCIO" ${v?.hL==='SUCIO'?'selected':''}>SUCIO</option></select></div>
+                    <div><label class="text-[7px]">Tolvas Café</label><select class="persist-dyn h-tolv text-[10px] font-bold"><option value="OP" ${v?.hT==='OP'?'selected':''}>OP</option><option value="SUCIO" ${v?.hT==='SUCIO'?'selected':''}>SUCIO</option></select></div>
+                    <div><label class="text-[7px]">Circuito Leche</label><select class="persist-dyn h-leche text-[10px] font-bold"><option value="OP" ${v?.hLe==='OP'?'selected':''}>OP</option><option value="SUCIO" ${v?.hLe==='SUCIO'?'selected':''}>SUCIO</option></select></div>
+                    <div><label class="text-[7px]">Limpieza General</label><select class="persist-dyn h-gral text-[10px] font-bold"><option value="OP" ${v?.hG==='OP'?'selected':''}>OP</option><option value="SUCIO" ${v?.hG==='SUCIO'?'selected':''}>SUCIO</option></select></div>
                 </div>
             </div>
+
             <div class="card bg-blue-50 border-none p-2 mt-2">
+                <label class="text-blue-900 font-black mb-1">Stock Insumos</label>
                 <div class="grid grid-cols-3 gap-2">
                     <div><label class="text-[7px]">Pastillas</label><select class="persist-dyn s-past text-[10px] font-bold"><option value="STOCK" ${v?.sP==='STOCK'?'selected':''}>OK</option><option value="CRÍTICO" ${v?.sP==='CRÍTICO'?'selected':''}>FALTA</option></select></div>
+                    <div><label class="text-[7px]">Líquido</label><select class="persist-dyn s-liq text-[10px] font-bold"><option value="STOCK" ${v?.sL==='STOCK'?'selected':''}>OK</option><option value="CRÍTICO" ${v?.sL==='CRÍTICO'?'selected':''}>FALTA</option></select></div>
                     <div><label class="text-[7px]">Sal</label><select class="persist-dyn s-sal text-[10px] font-bold"><option value="STOCK" ${v?.sS==='STOCK'?'selected':''}>OK</option><option value="CRÍTICO" ${v?.sS==='CRÍTICO'?'selected':''}>FALTA</option></select></div>
-                    <div><label class="text-[7px]">Ósmosis</label><select class="persist-dyn s-liq text-[10px] font-bold"><option value="STOCK" ${v?.sL==='STOCK'?'selected':''}>OK</option><option value="CRÍTICO" ${v?.sL==='CRÍTICO'?'selected':''}>FALTA</option></select></div>
                 </div>
             </div>
+
             <div class="space-y-2 border-t pt-2 mt-2">
                 <input type="text" placeholder="PEDIDO REPUESTOS" class="persist-dyn eq-rep-n text-[10px]" value="${v?.repN||''}">
                 <select class="persist-dyn eq-est font-bold text-xs" onchange="evaluarJerarquia()">
@@ -279,13 +288,13 @@
     function saveDraft() {
         const d = {
             c: { fe: document.getElementById('fecha').value, l: document.getElementById('local').value, ss: document.getElementById('siglaSis').value, st: document.getElementById('siglaTic').value, t: document.getElementById('ticket').value, tec: document.getElementById('tecnico').value, pr: document.getElementById('prioridad').value, p: document.getElementById('ppm').value, oa: document.getElementById('obsAgua').value, f: document.getElementById('f_filtrado').value, a: document.getElementById('f_ablandador').value, o: document.getElementById('f_osmosis').value, lab: document.getElementById('labor').value, via: document.getElementById('viaticos').value, op: document.getElementById('obsPrevias').value, of: document.getElementById('obsFinales').value, enc: document.getElementById('nombreEncargado').value },
-            e: Array.from(document.querySelectorAll('.equipo-item')).map(eq => ({ mod: eq.querySelector('.eq-mod').value, sn: eq.querySelector('.eq-sn').value, shots: eq.querySelector('.eq-shots').value, diag: eq.querySelector('.eq-diag').value, det: eq.querySelector('.eq-det').value, hL: eq.querySelector('.h-lanc').value, hT: eq.querySelector('.h-tolv').value, sP: eq.querySelector('.s-past').value, sL: eq.querySelector('.s-liq').value, sS: eq.querySelector('.s-sal').value, repN: eq.querySelector('.eq-rep-n').value, est: eq.querySelector('.eq-est').value }))
+            e: Array.from(document.querySelectorAll('.equipo-item')).map(eq => ({ mod: eq.querySelector('.eq-mod').value, sn: eq.querySelector('.eq-sn').value, shots: eq.querySelector('.eq-shots').value, diag: eq.querySelector('.eq-diag').value, det: eq.querySelector('.eq-det').value, hL: eq.querySelector('.h-lanc').value, hT: eq.querySelector('.h-tolv').value, hLe: eq.querySelector('.h-leche').value, hG: eq.querySelector('.h-gral').value, sP: eq.querySelector('.s-past').value, sL: eq.querySelector('.s-liq').value, sS: eq.querySelector('.s-sal').value, repN: eq.querySelector('.eq-rep-n').value, est: eq.querySelector('.eq-est').value }))
         };
-        localStorage.setItem('mostaza_elite_v12_4', JSON.stringify(d));
+        localStorage.setItem('mostaza_mtz_v12_5', JSON.stringify(d));
     }
 
     function loadDraft() {
-        const r = localStorage.getItem('mostaza_elite_v12_4'); if (!r) return;
+        const r = localStorage.getItem('mostaza_mtz_v12_5'); if (!r) return;
         const d = JSON.parse(r); document.getElementById('fecha').value = d.c.fe||''; document.getElementById('local').value = d.c.l||''; document.getElementById('siglaSis').value = d.c.ss||'';
         document.getElementById('siglaTic').value = d.c.st||''; document.getElementById('ticket').value = d.c.t||''; document.getElementById('tecnico').value = d.c.tec||'';
         document.getElementById('ppm').value = d.c.p||''; document.getElementById('prioridad').value = d.c.pr || ''; document.getElementById('labor').value = d.c.lab||''; document.getElementById('viaticos').value = d.c.via||''; document.getElementById('obsAgua').value = d.c.oa || ''; document.getElementById('obsPrevias').value = d.c.op||''; document.getElementById('obsFinales').value = d.c.of||''; document.getElementById('nombreEncargado').value = d.c.enc||'';
@@ -299,7 +308,7 @@
             const { jsPDF } = window.jspdf; const doc = new jsPDF();
             let curY = 20;
 
-            // --- HEADER CORPORATIVO V11.6 ---
+            // HEADER CORPORATIVO (M ROJA)
             doc.setFillColor(200, 0, 0); doc.circle(105, 12, 7, 'F');
             doc.setTextColor(255); doc.setFontSize(14); doc.setFont("helvetica", "bold"); doc.text("M", 105, 14, {align:'center'});
             doc.setFontSize(10); doc.setTextColor(0); doc.text("MOSTAZA MANTENIMIENTO FRANQUICIAS", 105, 23, {align:'center'});
@@ -307,7 +316,6 @@
             doc.setFontSize(9); doc.setFont("helvetica", "normal"); doc.text(document.getElementById('fecha').value || 'S/D', 185, 15, {align:'right'});
             curY += 10;
 
-            // 1. Datos Intervención
             doc.setDrawColor(200); doc.rect(15, curY, 180, 25);
             doc.setFont("helvetica", "bold"); doc.text("1. Datos de la Intervención", 17, curY+5);
             doc.setFont("helvetica", "normal");
@@ -317,10 +325,8 @@
             doc.text(`Labor: ${document.getElementById('labor').value}`, 110, curY+18);
             doc.setFont("helvetica", "bold"); doc.text(`VIÁTICO: $${document.getElementById('viaticos').value || '0.00'}`, 20, curY+23);
             doc.text(`PRIORIDAD: ${document.getElementById('prioridad').value}`, 110, curY+23);
-            doc.setFont("helvetica", "normal");
             curY += 37;
 
-            // 2. Calidad Agua (LED ONLY)
             doc.setFillColor(245); doc.rect(15, curY, 180, 12, 'F');
             doc.setTextColor(0); doc.setFontSize(10); doc.setFont("helvetica", "bold"); doc.text("2. CALIDAD DE AGUA:", 20, curY+8);
             const cA = getSemCol(waterColor); doc.setFillColor(cA[0],cA[1],cA[2]); doc.circle(65, curY+7, 3, 'F');
@@ -328,44 +334,40 @@
             doc.text(`PPM: ${document.getElementById('ppm').value} | FIL: ${document.getElementById('f_filtrado').value} | AB: ${document.getElementById('f_ablandador').value}`, 85, curY+8);
             curY += 18;
 
-            // NUEVO BLOQUE: Detalle Hídrico Dinámico
             const detalleHidrico = document.getElementById('obsAgua').value;
             if(detalleHidrico) {
                 doc.setFontSize(8); doc.setFont("helvetica", "italic");
                 const oaLines = doc.splitTextToSize("Detalle Instalación: " + detalleHidrico, 180);
-                doc.text(oaLines, 15, curY);
-                curY += (oaLines.length * 4) + 5;
-                doc.setFont("helvetica", "normal");
+                doc.text(oaLines, 15, curY); curY += (oaLines.length * 4) + 5;
             }
 
-            // 3. Obs Iniciales
             doc.setFontSize(9); doc.setFont("helvetica", "bold"); doc.text("3. Observaciones Iniciales:", 15, curY);
             doc.setFontSize(8); doc.setFont("helvetica", "normal");
             const pL = doc.splitTextToSize(document.getElementById('obsPrevias').value || "Sin observaciones.", 180);
             doc.text(pL, 15, curY+5); curY += (pL.length * 4) + 10;
 
-            // 4. Equipos (Con LED por Activo)
             document.querySelectorAll('.equipo-item').forEach((eq, i) => {
                 if(curY > 230) { doc.addPage(); curY = 20; }
                 doc.setFillColor(235); doc.rect(15, curY, 180, 7, 'F');
                 doc.setFontSize(9); doc.setFont("helvetica", "bold"); 
-                doc.text(`4.${i+1} EQUIPO: ${eq.querySelector('.eq-mod').value} (SN: ${eq.querySelector('.eq-sn').value}) | CICLOS: ${eq.querySelector('.eq-shots').value || '0'}`, 17, curY+5);
+                doc.text(`4.${i+1} EQUIPO: ${eq.querySelector('.eq-mod').value} (SN: ${eq.querySelector('.eq-sn').value}) | SHOOTS: ${eq.querySelector('.eq-shots').value || '0'}`, 17, curY+5);
                 curY += 12;
-                
                 const status = eq.querySelector('.eq-est').value;
                 let sCol = getSemCol(status.includes("FUERA") ? "ROJO" : (status.includes("OBS") ? "AMARILLO" : "VERDE"));
                 doc.setFont("helvetica", "bold"); doc.text("Detalle:", 15, curY);
                 doc.setFont("helvetica", "normal"); doc.text("Estado Final:", 110, curY);
                 doc.setFillColor(sCol[0], sCol[1], sCol[2]); doc.circle(135, curY-1, 2.5, 'F'); 
                 curY += 5;
-
                 const dL = doc.splitTextToSize("Diag: " + eq.querySelector('.eq-diag').value, 175); doc.text(dL, 15, curY); curY += (dL.length * 4) + 2;
                 const wL = doc.splitTextToSize("Trabajo: " + eq.querySelector('.eq-det').value, 175); doc.text(wL, 15, curY); curY += (wL.length * 4) + 5;
+                
+                doc.setFontSize(7);
+                doc.text(`Higiene: Lancetas ${eq.querySelector('.h-lanc').value} | Tolvas ${eq.querySelector('.h-tolv').value} | Leche ${eq.querySelector('.h-leche').value} | Gral: ${eq.querySelector('.h-gral').value}`, 15, curY); curY += 4;
+                doc.text(`Insumos: Pastillas ${eq.querySelector('.s-past').value} | Líquido ${eq.querySelector('.s-liq').value} | Sal ${eq.querySelector('.s-sal').value}`, 15, curY); curY += 6;
                 doc.setFontSize(8); doc.setFont("helvetica", "bold");
                 doc.text(`Pedido Repuestos: ${eq.querySelector('.eq-rep-n').value || 'Ninguno'}`, 15, curY); curY += 10;
             });
 
-            // 5. Fotos y Recomendaciones
             if(processedImages.length > 0) {
                 if(curY > 150) { doc.addPage(); curY = 20; }
                 doc.setFont("helvetica", "bold"); doc.text("5. Registro Fotográfico", 15, curY); curY += 10;
@@ -381,46 +383,35 @@
             const fL = doc.splitTextToSize(document.getElementById('obsFinales').value || "Sin recomendaciones.", 180);
             doc.setFont("helvetica", "normal"); doc.setFontSize(8); doc.text(fL, 15, curY+5); curY += (fL.length * 4) + 15;
 
-            // 7. Firmas (Hardened)
             if(curY > 220) { doc.addPage(); curY = 20; }
             doc.line(15, curY, 195, curY); curY += 10;
             doc.addImage(padT.toDataURL(),'PNG', 15, curY, 60, 30); doc.addImage(padE.toDataURL(),'PNG', 120, curY, 60, 30);
             doc.setFontSize(8); doc.setFont("helvetica", "bold");
             doc.text("FIRMA TÉCNICO", 15, curY+35); doc.text(`ENCARGADO: ${document.getElementById('nombreEncargado').value || 'CONFORMIDAD'}`, 120, curY+35);
 
-            // --- PÁGINA 2: RESUMEN GERENCIA (LED ONLY) ---
             doc.addPage(); let resY = 15;
             doc.setFillColor(200, 0, 0); doc.circle(105, 12, 7, 'F');
             doc.setTextColor(255); doc.setFontSize(14); doc.text("M", 105, 14, {align:'center'});
             doc.setTextColor(0); doc.setFontSize(10); doc.text("MOSTAZA MANTENIMIENTO FRANQUICIAS", 105, 23, {align:'center'});
             doc.setFillColor(245, 130, 32); doc.rect(15, 28, 180, 10, 'F');
             doc.setTextColor(255); doc.setFontSize(12); doc.text("RESUMEN DE ESTADO PARA GERENCIA", 105, 34.5, {align:'center'});
-            
-            doc.setTextColor(0); doc.setFontSize(10); resY = 50;
-            doc.setFont("helvetica", "bold"); doc.text("DATOS DE CONTROL:", 15, resY); doc.setFont("helvetica", "normal");
-            doc.text(`LOCAL: ${document.getElementById('local').value}`, 15, resY + 7);
+            resY = 50; doc.setTextColor(0); doc.setFont("helvetica", "bold"); doc.text("DATOS DE CONTROL:", 15, resY);
+            doc.setFont("helvetica", "normal"); doc.text(`LOCAL: ${document.getElementById('local').value}`, 15, resY + 7);
             doc.text(`TICKET: ${document.getElementById('ticket').value} | FECHA: ${document.getElementById('fecha').value}`, 110, resY + 7);
             resY += 20;
-
-            doc.setFont("helvetica", "bold"); doc.text("ESTADO DE SALUD HÍDRICA:", 15, resY); doc.setFont("helvetica", "normal");
-            doc.text("AGUA:", 15, resY + 7); 
-            doc.setFillColor(cA[0], cA[1], cA[2]); doc.circle(32, resY + 6, 3, 'F');
-            doc.text(`LECTURA: ${document.getElementById('ppm').value} PPM`, 45, resY + 7); resY += 20;
-            
-            doc.setFont("helvetica", "bold"); doc.text("ACCIONES Y ESTADO POR EQUIPO:", 15, resY); resY += 10;
+            doc.setFont("helvetica", "bold"); doc.text("ESTADO AGUA:", 15, resY); 
+            doc.setFillColor(cA[0], cA[1], cA[2]); doc.circle(45, resY - 1, 3, 'F'); resY += 15;
+            doc.text("ACCIONES POR EQUIPO:", 15, resY); resY += 8;
             document.querySelectorAll('.equipo-item').forEach(eq => {
                 const s = eq.querySelector('.eq-est').value;
                 let c = getSemCol(s.includes("FUERA") ? "ROJO" : (s.includes("OBS") ? "AMARILLO" : "VERDE"));
                 doc.setFillColor(c[0], c[1], c[2]); doc.circle(18, resY - 1, 2, 'F');
-                doc.setFont("helvetica", "bold"); doc.text(`${eq.querySelector('.eq-mod').value} (SN: ${eq.querySelector('.eq-sn').value}):`, 25, resY);
-                resY += 5; doc.setFont("helvetica", "normal"); doc.setFontSize(9);
-                doc.text(`-> PEDIDO: ${eq.querySelector('.eq-rep-n').value || 'Sin pedidos'}`, 25, resY);
-                resY += 8; doc.setFontSize(10);
+                doc.setFont("helvetica", "bold"); doc.text(`${eq.querySelector('.eq-mod').value}: ${eq.querySelector('.eq-rep-n').value || 'Sin pedidos'}`, 25, resY);
+                resY += 8;
             });
 
             for(let i = 1; i <= doc.internal.getNumberOfPages(); i++) { doc.setPage(i); doc.setFontSize(7); doc.setTextColor(150); doc.text("Mostaza Mantenimiento Franquicias - Control Interno Regional", 105, 290, {align:'center'}); }
 
-            // RECTIFICACIÓN V12.3: Nombre de archivo con prefijo MTZ
             const fname = document.getElementById('siglaTic').value || 'Rep';
             doc.save(`MTZ_${fname}_${document.getElementById('fecha').value}.pdf`);
         } catch (e) { alert("Error PDF: " + e.message); }
