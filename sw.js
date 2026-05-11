@@ -1,4 +1,4 @@
-const CACHE_NAME = 'mostaza-elite-v12-2';
+const CACHE_NAME = 'mostaza-elite-v12-4';
 const assets = ['index.html', 'manifest.json'];
 
 self.addEventListener('install', e => {
