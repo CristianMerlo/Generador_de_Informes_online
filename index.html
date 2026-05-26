@@ -182,7 +182,11 @@
     ];
 
     let padT, padE, processedImages = [], locks = { T: false, E: false }, waterColor = "VERDE";
-    const TAREAS = ["Limpieza grupo", "Cambio juntas", "Calibración", "Descalcificación"];
+    const TAREAS = [
+        "Limpieza grupo", "Cambio juntas", "Calibración", "Descalcificación", 
+        "Gramaje y Recetas", "Limpieza bomba leche", "Limpieza válvula ELF3", 
+        "Limpieza chicler", "Destapado desagüe"
+    ];
 
     window.onload = () => {
         padT = new SignaturePad(document.getElementById('padT'));
