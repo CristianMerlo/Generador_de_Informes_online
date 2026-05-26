@@ -67,7 +67,7 @@
                     </select>
                 </div>
                 <div class="col-span-3 mt-2"><label>Tiempo de Labor</label><input type="text" id="labor" class="persist" placeholder="00:00 hs"></div>
-                <div class="col-span-3 mt-2"><label>Gasto de Viático ($)</label><input type="number" id="viaticos" class="persist font-bold text-green-700" placeholder="0.00"></div>
+                <div class="col-span-3 mt-2"><label>Tiempo de Traslado (hs)</label><input type="number" id="traslado" class="persist font-bold text-blue-700" min="1" step="1" placeholder="1 hs" onchange="if(this.value && this.value < 1) this.value = 1; this.value = Math.round(this.value);"></div>
                 <div class="col-span-6 mt-2">
                     <label>Prioridad / Tipo de Servicio</label>
                     <select id="prioridad" class="persist font-bold text-blue-700">
@@ -108,7 +108,10 @@
 
         <div class="card border-l-8 border-l-orange-400">
             <h3 class="text-xs font-black uppercase mb-2 text-orange-500 border-b">5. Registro Fotográfico</h3>
-            <input type="file" id="fotoInput" accept="image/*" multiple class="text-xs mb-2">
+            <div class="flex flex-wrap items-center gap-2 mb-2">
+                <input type="file" id="fotoInput" accept="image/*" multiple class="text-xs w-auto">
+                <span id="fotoHelp" class="text-[10px] text-red-600 font-bold"></span>
+            </div>
             <div id="fotoPreview" class="grid grid-cols-4 gap-2"></div>
         </div>
 
@@ -197,8 +200,50 @@
 
     function sincronizar(o) {
         const nI = document.getElementById('local'), sI = document.getElementById('siglaSis'), tI = document.getElementById('siglaTic');
-        let enc = DB_LOCALES.find(l=> (o==='nombre' && l.n===nI.value.toUpperCase()) || (o==='sis' && l.s===sI.value.toUpperCase()) || (o==='tic' && l.t===tI.value.toUpperCase()));
-        if(enc) { nI.value = enc.n; sI.value = enc.s; tI.value = enc.t; }
+        
+        const valLocal = nI.value.toUpperCase().trim();
+        const valSis = sI.value.toUpperCase().trim();
+        const valTic = tI.value.toUpperCase().trim();
+
+        // 1. Intentar buscar coincidencia completa en la base de datos
+        let enc = DB_LOCALES.find(l => 
+            (o === 'nombre' && l.n.toUpperCase().trim() === valLocal) || 
+            (o === 'sis' && l.s.toUpperCase().trim() === valSis) || 
+            (o === 'tic' && l.t.toUpperCase().trim() === valTic)
+        );
+
+        if (enc) {
+            // Coincidencia encontrada: autocompletamos los tres campos
+            nI.value = enc.n;
+            sI.value = enc.s;
+            tI.value = enc.t;
+        } else {
+            // Sin coincidencia: prevenimos el arrastre de datos obsoletos
+            if (o === 'nombre') {
+                // Si cambiamos el nombre y las siglas actuales pertenecen a algún local de la DB,
+                // las limpiamos ya que el nombre ya no coincide con ese local.
+                const asoc = DB_LOCALES.find(l => l.s.toUpperCase().trim() === valSis || l.t.toUpperCase().trim() === valTic);
+                if (asoc) {
+                    sI.value = '';
+                    tI.value = '';
+                }
+            } else if (o === 'sis') {
+                // Si cambiamos la sigla de sistema y el nombre de local actual pertenece a la DB,
+                // lo limpiamos porque ya no coincide con la sigla.
+                const asoc = DB_LOCALES.find(l => l.n.toUpperCase().trim() === valLocal);
+                if (asoc) {
+                    nI.value = '';
+                    tI.value = '';
+                }
+            } else if (o === 'tic') {
+                // Si cambiamos la sigla de ticket y el nombre de local actual pertenece a la DB, lo limpiamos.
+                const asoc = DB_LOCALES.find(l => l.n.toUpperCase().trim() === valLocal);
+                if (asoc) {
+                    nI.value = '';
+                    sI.value = '';
+                }
+            }
+        }
         saveDraft();
     }
 
@@ -240,7 +285,7 @@
             <div class="card bg-gray-50 border-none p-2 mt-2">
                 <label class="text-blue-800 font-black mb-1">Higiene Equipo</label>
                 <div class="grid grid-cols-2 gap-2">
-                    <div><label class="text-[7px]">Lancetas Vapor</label><select class="persist-dyn h-lanc text-[10px] font-bold"><option value="OP" ${v?.hL==='OP'?'selected':''}>OP</option><option value="SUCIO" ${v?.hL==='SUCIO'?'selected':''}>SUCIO</option></select></div>
+                    <div><label class="text-[7px]">Lanza de vapor</label><select class="persist-dyn h-lanc text-[10px] font-bold"><option value="OP" ${v?.hL==='OP'?'selected':''}>OP</option><option value="SUCIO" ${v?.hL==='SUCIO'?'selected':''}>SUCIO</option></select></div>
                     <div><label class="text-[7px]">Tolvas Café</label><select class="persist-dyn h-tolv text-[10px] font-bold"><option value="OP" ${v?.hT==='OP'?'selected':''}>OP</option><option value="SUCIO" ${v?.hT==='SUCIO'?'selected':''}>SUCIO</option></select></div>
                     <div><label class="text-[7px]">Circuito Leche</label><select class="persist-dyn h-leche text-[10px] font-bold"><option value="OP" ${v?.hLe==='OP'?'selected':''}>OP</option><option value="SUCIO" ${v?.hLe==='SUCIO'?'selected':''}>SUCIO</option></select></div>
                     <div><label class="text-[7px]">Limpieza General</label><select class="persist-dyn h-gral text-[10px] font-bold"><option value="OP" ${v?.hG==='OP'?'selected':''}>OP</option><option value="SUCIO" ${v?.hG==='SUCIO'?'selected':''}>SUCIO</option></select></div>
@@ -258,6 +303,7 @@
 
             <div class="space-y-2 border-t pt-2 mt-2">
                 <input type="text" placeholder="PEDIDO REPUESTOS" class="persist-dyn eq-rep-n text-[10px]" value="${v?.repN||''}">
+                <input type="number" placeholder="GASTOS FERRETERÍA / INSUMOS (ARS)" class="persist-dyn eq-gas-f text-[10px] font-bold text-green-700" value="${v?.gasF||''}" min="0" step="any">
                 <select class="persist-dyn eq-est font-bold text-xs" onchange="evaluarJerarquia()">
                     <option value="OPERATIVA" ${v?.est==='OPERATIVA'?'selected':''}>OPERATIVA</option><option value="OPERATIVA CON OBS." ${v?.est==='OPERATIVA CON OBS.'?'selected':''}>OPERATIVA CON OBS.</option><option value="FUERA DE SERVICIO" ${v?.est==='FUERA DE SERVICIO'?'selected':''}>FUERA DE SERVICIO</option>
                 </select>
@@ -269,7 +315,14 @@
     function addTask(b, t) { const a = b.closest('.equipo-item').querySelectorAll('textarea')[1]; a.value += (a.value ? ', ' : '') + t; saveDraft(); }
 
     document.getElementById('fotoInput').onchange = async (e) => {
-        const files = Array.from(e.target.files).slice(0, 4); processedImages = [];
+        const total = e.target.files.length;
+        const help = document.getElementById('fotoHelp');
+        if (total > 8) {
+            help.innerText = `⚠️ Límite: Se cargaron las primeras 8 de ${total} fotos.`;
+        } else {
+            help.innerText = '';
+        }
+        const files = Array.from(e.target.files).slice(0, 8); processedImages = [];
         const prev = document.getElementById('fotoPreview'); prev.innerHTML = "<p class='col-span-4 text-[8px] animate-pulse'>Procesando...</p>";
         for (const f of files) {
             const data = await new Promise(res => {
@@ -287,8 +340,8 @@
 
     function saveDraft() {
         const d = {
-            c: { fe: document.getElementById('fecha').value, l: document.getElementById('local').value, ss: document.getElementById('siglaSis').value, st: document.getElementById('siglaTic').value, t: document.getElementById('ticket').value, tec: document.getElementById('tecnico').value, pr: document.getElementById('prioridad').value, p: document.getElementById('ppm').value, oa: document.getElementById('obsAgua').value, f: document.getElementById('f_filtrado').value, a: document.getElementById('f_ablandador').value, o: document.getElementById('f_osmosis').value, lab: document.getElementById('labor').value, via: document.getElementById('viaticos').value, op: document.getElementById('obsPrevias').value, of: document.getElementById('obsFinales').value, enc: document.getElementById('nombreEncargado').value },
-            e: Array.from(document.querySelectorAll('.equipo-item')).map(eq => ({ mod: eq.querySelector('.eq-mod').value, sn: eq.querySelector('.eq-sn').value, shots: eq.querySelector('.eq-shots').value, diag: eq.querySelector('.eq-diag').value, det: eq.querySelector('.eq-det').value, hL: eq.querySelector('.h-lanc').value, hT: eq.querySelector('.h-tolv').value, hLe: eq.querySelector('.h-leche').value, hG: eq.querySelector('.h-gral').value, sP: eq.querySelector('.s-past').value, sL: eq.querySelector('.s-liq').value, sS: eq.querySelector('.s-sal').value, repN: eq.querySelector('.eq-rep-n').value, est: eq.querySelector('.eq-est').value }))
+            c: { fe: document.getElementById('fecha').value, l: document.getElementById('local').value, ss: document.getElementById('siglaSis').value, st: document.getElementById('siglaTic').value, t: document.getElementById('ticket').value, tec: document.getElementById('tecnico').value, pr: document.getElementById('prioridad').value, p: document.getElementById('ppm').value, oa: document.getElementById('obsAgua').value, f: document.getElementById('f_filtrado').value, a: document.getElementById('f_ablandador').value, o: document.getElementById('f_osmosis').value, lab: document.getElementById('labor').value, via: document.getElementById('traslado').value, op: document.getElementById('obsPrevias').value, of: document.getElementById('obsFinales').value, enc: document.getElementById('nombreEncargado').value },
+            e: Array.from(document.querySelectorAll('.equipo-item')).map(eq => ({ mod: eq.querySelector('.eq-mod').value, sn: eq.querySelector('.eq-sn').value, shots: eq.querySelector('.eq-shots').value, diag: eq.querySelector('.eq-diag').value, det: eq.querySelector('.eq-det').value, hL: eq.querySelector('.h-lanc').value, hT: eq.querySelector('.h-tolv').value, hLe: eq.querySelector('.h-leche').value, hG: eq.querySelector('.h-gral').value, sP: eq.querySelector('.s-past').value, sL: eq.querySelector('.s-liq').value, sS: eq.querySelector('.s-sal').value, repN: eq.querySelector('.eq-rep-n').value, gasF: eq.querySelector('.eq-gas-f').value, est: eq.querySelector('.eq-est').value }))
         };
         localStorage.setItem('mostaza_mtz_v12_5', JSON.stringify(d));
     }
@@ -297,7 +350,7 @@
         const r = localStorage.getItem('mostaza_mtz_v12_5'); if (!r) return;
         const d = JSON.parse(r); document.getElementById('fecha').value = d.c.fe||''; document.getElementById('local').value = d.c.l||''; document.getElementById('siglaSis').value = d.c.ss||'';
         document.getElementById('siglaTic').value = d.c.st||''; document.getElementById('ticket').value = d.c.t||''; document.getElementById('tecnico').value = d.c.tec||'';
-        document.getElementById('ppm').value = d.c.p||''; document.getElementById('prioridad').value = d.c.pr || ''; document.getElementById('labor').value = d.c.lab||''; document.getElementById('viaticos').value = d.c.via||''; document.getElementById('obsAgua').value = d.c.oa || ''; document.getElementById('obsPrevias').value = d.c.op||''; document.getElementById('obsFinales').value = d.c.of||''; document.getElementById('nombreEncargado').value = d.c.enc||'';
+        document.getElementById('ppm').value = d.c.p||''; document.getElementById('prioridad').value = d.c.pr || ''; document.getElementById('labor').value = d.c.lab||''; document.getElementById('traslado').value = d.c.via||''; document.getElementById('obsAgua').value = d.c.oa || ''; document.getElementById('obsPrevias').value = d.c.op||''; document.getElementById('obsFinales').value = d.c.of||''; document.getElementById('nombreEncargado').value = d.c.enc||'';
         if (d.e) { document.getElementById('equiposGrid').innerHTML = ''; d.e.forEach(eq => addEquipo(eq)); }
     }
 
@@ -323,7 +376,7 @@
             doc.text(`Técnico: ${document.getElementById('tecnico').value}`, 20, curY+18);
             doc.text(`Ticket N°: ${document.getElementById('ticket').value}`, 110, curY+12);
             doc.text(`Labor: ${document.getElementById('labor').value}`, 110, curY+18);
-            doc.setFont("helvetica", "bold"); doc.text(`VIÁTICO: $${document.getElementById('viaticos').value || '0.00'}`, 20, curY+23);
+            doc.setFont("helvetica", "bold"); doc.text(`TRASLADO: ${document.getElementById('traslado').value || '0'} hs`, 20, curY+23);
             doc.text(`PRIORIDAD: ${document.getElementById('prioridad').value}`, 110, curY+23);
             curY += 37;
 
@@ -362,20 +415,28 @@
                 const wL = doc.splitTextToSize("Trabajo: " + eq.querySelector('.eq-det').value, 175); doc.text(wL, 15, curY); curY += (wL.length * 4) + 5;
                 
                 doc.setFontSize(7);
-                doc.text(`Higiene: Lancetas ${eq.querySelector('.h-lanc').value} | Tolvas ${eq.querySelector('.h-tolv').value} | Leche ${eq.querySelector('.h-leche').value} | Gral: ${eq.querySelector('.h-gral').value}`, 15, curY); curY += 4;
+                doc.text(`Higiene: Lanza vapor ${eq.querySelector('.h-lanc').value} | Tolvas ${eq.querySelector('.h-tolv').value} | Leche ${eq.querySelector('.h-leche').value} | Gral: ${eq.querySelector('.h-gral').value}`, 15, curY); curY += 4;
                 doc.text(`Insumos: Pastillas ${eq.querySelector('.s-past').value} | Líquido ${eq.querySelector('.s-liq').value} | Sal ${eq.querySelector('.s-sal').value}`, 15, curY); curY += 6;
                 doc.setFontSize(8); doc.setFont("helvetica", "bold");
-                doc.text(`Pedido Repuestos: ${eq.querySelector('.eq-rep-n').value || 'Ninguno'}`, 15, curY); curY += 10;
+                doc.text(`Pedido Repuestos: ${eq.querySelector('.eq-rep-n').value || 'Ninguno'}`, 15, curY); curY += 4;
+                doc.text(`Gastos Ferretería/Insumos: $${eq.querySelector('.eq-gas-f').value || '0'} ARS`, 15, curY); curY += 8;
             });
 
             if(processedImages.length > 0) {
-                if(curY > 150) { doc.addPage(); curY = 20; }
+                if(curY > 180) { doc.addPage(); curY = 20; }
                 doc.setFont("helvetica", "bold"); doc.text("5. Registro Fotográfico", 15, curY); curY += 10;
                 processedImages.forEach((img, i) => {
-                    const x = 15 + (i % 2 * 95); const y = curY + (Math.floor(i / 2) * 75);
-                    doc.addImage(img, 'JPEG', x, y, 90, 65);
+                    if (i > 0 && i % 2 === 0) {
+                        curY += 75;
+                        if (curY + 65 > 270) {
+                            doc.addPage();
+                            curY = 20;
+                        }
+                    }
+                    const x = 15 + (i % 2 * 95);
+                    doc.addImage(img, 'JPEG', x, curY, 90, 65);
                 });
-                curY += (Math.ceil(processedImages.length / 2) * 75) + 5;
+                curY += 70;
             }
 
             if(curY > 240) { doc.addPage(); curY = 20; }
@@ -406,7 +467,10 @@
                 const s = eq.querySelector('.eq-est').value;
                 let c = getSemCol(s.includes("FUERA") ? "ROJO" : (s.includes("OBS") ? "AMARILLO" : "VERDE"));
                 doc.setFillColor(c[0], c[1], c[2]); doc.circle(18, resY - 1, 2, 'F');
-                doc.setFont("helvetica", "bold"); doc.text(`${eq.querySelector('.eq-mod').value}: ${eq.querySelector('.eq-rep-n').value || 'Sin pedidos'}`, 25, resY);
+                doc.setFont("helvetica", "bold");
+                const repText = eq.querySelector('.eq-rep-n').value ? `Repuestos: ${eq.querySelector('.eq-rep-n').value}` : 'Sin pedidos';
+                const gasText = eq.querySelector('.eq-gas-f').value ? ` | Gastos: $${eq.querySelector('.eq-gas-f').value} ARS` : '';
+                doc.text(`${eq.querySelector('.eq-mod').value}: ${repText}${gasText}`, 25, resY);
                 resY += 8;
             });
 
