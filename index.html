@@ -85,7 +85,13 @@
         <div class="card border-l-8 border-l-blue-500">
             <h3 class="text-xs font-black uppercase text-blue-600 mb-3 border-b">2. Calidad de Agua</h3>
             <div class="space-y-4">
-                <div><label>PPM Post-Filtrado</label><input type="number" id="ppm" class="persist" oninput="evaluarJerarquia()"></div>
+                <div class="flex items-center justify-between gap-4">
+                    <div class="flex-1"><label>PPM Post-Filtrado</label><input type="number" id="ppm" class="persist w-full" oninput="evaluarJerarquia()"></div>
+                    <div class="flex items-center gap-1 mt-4">
+                        <input type="checkbox" id="ppm_pendiente" class="persist" onchange="togglePpmPendiente()">
+                        <label for="ppm_pendiente" class="text-xs text-gray-500 font-bold select-none cursor-pointer">Pendiente</label>
+                    </div>
+                </div>
                 <div class="grid grid-cols-3 gap-2">
                     <div><label>Filtro</label><select id="f_filtrado" class="persist" onchange="evaluarJerarquia()"><option value="OP">OP</option><option value="NO OP">NO OP</option><option value="N/A">N/A</option></select></div>
                     <div><label>Ablandador</label><select id="f_ablandador" class="persist" onchange="evaluarJerarquia()"><option value="OP">OP</option><option value="NO OP">NO OP</option><option value="N/A">N/A</option></select></div>
@@ -154,7 +160,7 @@
         { n: "TUCUMAN 5", s: "FTC5", t: "FTC5" }, { n: "TUCUMAN 6", s: "FTC6", t: "FMTU6" }, { n: "TUCUMAN 7", s: "FMTU7", t: "FMTU7" },
         { n: "TUCUMAN 8", s: "FTC8", t: "FMTC8" }, { n: "PORTAL TUCUMAN", s: "MPT", t: "MPT" }, { n: "TUCUMAN 9", s: "FMTU9", t: "FMTU9" },
         { n: "QUILMES P.", s: "FQUP", t: "FMQCA" }, { n: "LA PLATA 2", s: "FLP2", t: "FLPCA" }, { n: "LA PLATA 3", s: "FLP3", t: "FLPC3" },
-        { n: "LA PLATA 4", s: "FLP4", t: "FLPC4" }, { n: "LA PLATA 6", s: "FLP6", t: "FLPC6" }, { n: "CITY BELL", s: "FCYB", t: "FMCB1" },
+        { n: "LA PLATA 4", s: "FLP4", t: "FLPC4" }, { n: "CITY BELL", s: "FCYB", t: "FMCB1" },
         { n: "REPUBLICA", s: "FRDN", t: "FRPNI" }, { n: "S DEL ESTERO", s: "FSDE", t: "FSANT" }, { n: "MENDOZA CENTRO", s: "FMMSM", t: "FMMSM" },
         { n: "MENDOZA COLON", s: "FMMCO", t: "FMMCO" }, { n: "SAN RAFAEL", s: "FSRM", t: "FSRM" }, { n: "GONNET", s: "FGON", t: "FGONN" },
         { n: "BERAZATEGUI", s: "FBER", t: "FMBER" }, { n: "ROTONDA", s: "FMRG", t: "FROG" }, { n: "LOMAS AUTO", s: "FLOZ", t: "FMLOA" },
@@ -260,10 +266,28 @@
 
     function clearPad(t) { if(!locks[t]) (t === 'T' ? padT : padE).clear(); }
 
+    function togglePpmPendiente() {
+        const isPendiente = document.getElementById('ppm_pendiente').checked;
+        const ppmInput = document.getElementById('ppm');
+        if (isPendiente) {
+            ppmInput.value = '';
+            ppmInput.disabled = true;
+        } else {
+            ppmInput.disabled = false;
+        }
+        evaluarJerarquia();
+    }
+
     function evaluarJerarquia() {
-        const ppm = parseInt(document.getElementById('ppm').value) || 0;
+        const isPendiente = document.getElementById('ppm_pendiente') ? document.getElementById('ppm_pendiente').checked : false;
+        let ppm = 0;
+        if (!isPendiente) {
+            ppm = parseInt(document.getElementById('ppm').value) || 0;
+        }
         const fallasAgua = [document.getElementById('f_filtrado').value, document.getElementById('f_ablandador').value, document.getElementById('f_osmosis').value].filter(v => v === 'NO OP').length;
-        waterColor = (ppm > 200 || fallasAgua >= 2) ? "ROJO" : (ppm > 150 || fallasAgua === 1 ? "AMARILLO" : "VERDE");
+        waterColor = (isPendiente) ? 
+            (fallasAgua >= 2 ? "ROJO" : (fallasAgua === 1 ? "AMARILLO" : "VERDE")) :
+            ((ppm > 200 || fallasAgua >= 2) ? "ROJO" : (ppm > 150 || fallasAgua === 1 ? "AMARILLO" : "VERDE"));
         let mS = 0; document.querySelectorAll('.eq-est').forEach(s => { if(s.value==="FUERA DE SERVICIO") mS=2; else if(s.value==="OPERATIVA CON OBS." && mS<2) mS=1; });
         document.getElementById('statusLed').className = `h-5 w-5 rounded-full ${waterColor==='ROJO'||mS===2?'bg-red-600 animate-pulse':'bg-green-500'}`;
         saveDraft();
@@ -344,7 +368,7 @@
 
     function saveDraft() {
         const d = {
-            c: { fe: document.getElementById('fecha').value, l: document.getElementById('local').value, ss: document.getElementById('siglaSis').value, st: document.getElementById('siglaTic').value, t: document.getElementById('ticket').value, tec: document.getElementById('tecnico').value, pr: document.getElementById('prioridad').value, p: document.getElementById('ppm').value, oa: document.getElementById('obsAgua').value, f: document.getElementById('f_filtrado').value, a: document.getElementById('f_ablandador').value, o: document.getElementById('f_osmosis').value, lab: document.getElementById('labor').value, via: document.getElementById('traslado').value, op: document.getElementById('obsPrevias').value, of: document.getElementById('obsFinales').value, enc: document.getElementById('nombreEncargado').value },
+            c: { fe: document.getElementById('fecha').value, l: document.getElementById('local').value, ss: document.getElementById('siglaSis').value, st: document.getElementById('siglaTic').value, t: document.getElementById('ticket').value, tec: document.getElementById('tecnico').value, pr: document.getElementById('prioridad').value, p: document.getElementById('ppm').value, pp: document.getElementById('ppm_pendiente').checked, oa: document.getElementById('obsAgua').value, f: document.getElementById('f_filtrado').value, a: document.getElementById('f_ablandador').value, o: document.getElementById('f_osmosis').value, lab: document.getElementById('labor').value, via: document.getElementById('traslado').value, op: document.getElementById('obsPrevias').value, of: document.getElementById('obsFinales').value, enc: document.getElementById('nombreEncargado').value },
             e: Array.from(document.querySelectorAll('.equipo-item')).map(eq => ({ mod: eq.querySelector('.eq-mod').value, sn: eq.querySelector('.eq-sn').value, shots: eq.querySelector('.eq-shots').value, diag: eq.querySelector('.eq-diag').value, det: eq.querySelector('.eq-det').value, hL: eq.querySelector('.h-lanc').value, hT: eq.querySelector('.h-tolv').value, hLe: eq.querySelector('.h-leche').value, hG: eq.querySelector('.h-gral').value, sP: eq.querySelector('.s-past').value, sL: eq.querySelector('.s-liq').value, sS: eq.querySelector('.s-sal').value, repN: eq.querySelector('.eq-rep-n').value, gasF: eq.querySelector('.eq-gas-f').value, est: eq.querySelector('.eq-est').value }))
         };
         localStorage.setItem('mostaza_mtz_v12_5', JSON.stringify(d));
@@ -354,7 +378,13 @@
         const r = localStorage.getItem('mostaza_mtz_v12_5'); if (!r) return;
         const d = JSON.parse(r); document.getElementById('fecha').value = d.c.fe||''; document.getElementById('local').value = d.c.l||''; document.getElementById('siglaSis').value = d.c.ss||'';
         document.getElementById('siglaTic').value = d.c.st||''; document.getElementById('ticket').value = d.c.t||''; document.getElementById('tecnico').value = d.c.tec||'';
-        document.getElementById('ppm').value = d.c.p||''; document.getElementById('prioridad').value = d.c.pr || ''; document.getElementById('labor').value = d.c.lab||''; document.getElementById('traslado').value = d.c.via||''; document.getElementById('obsAgua').value = d.c.oa || ''; document.getElementById('obsPrevias').value = d.c.op||''; document.getElementById('obsFinales').value = d.c.of||''; document.getElementById('nombreEncargado').value = d.c.enc||'';
+        document.getElementById('ppm').value = d.c.p||''; 
+        const ppmPendiente = document.getElementById('ppm_pendiente');
+        if (ppmPendiente) {
+            ppmPendiente.checked = d.c.pp || false;
+            document.getElementById('ppm').disabled = ppmPendiente.checked;
+        }
+        document.getElementById('prioridad').value = d.c.pr || ''; document.getElementById('labor').value = d.c.lab||''; document.getElementById('traslado').value = d.c.via||''; document.getElementById('obsAgua').value = d.c.oa || ''; document.getElementById('obsPrevias').value = d.c.op||''; document.getElementById('obsFinales').value = d.c.of||''; document.getElementById('nombreEncargado').value = d.c.enc||'';
         if (d.e) { document.getElementById('equiposGrid').innerHTML = ''; d.e.forEach(eq => addEquipo(eq)); }
     }
 
@@ -388,7 +418,8 @@
             doc.setTextColor(0); doc.setFontSize(10); doc.setFont("helvetica", "bold"); doc.text("2. CALIDAD DE AGUA:", 20, curY+8);
             const cA = getSemCol(waterColor); doc.setFillColor(cA[0],cA[1],cA[2]); doc.circle(65, curY+7, 3, 'F');
             doc.setTextColor(0); doc.setFontSize(8); doc.setFont("helvetica", "normal");
-            doc.text(`PPM: ${document.getElementById('ppm').value} | FIL: ${document.getElementById('f_filtrado').value} | AB: ${document.getElementById('f_ablandador').value}`, 85, curY+8);
+            const ppmVal = document.getElementById('ppm_pendiente').checked ? "PENDIENTE" : (document.getElementById('ppm').value || '-');
+            doc.text(`PPM: ${ppmVal} | FIL: ${document.getElementById('f_filtrado').value} | AB: ${document.getElementById('f_ablandador').value}`, 85, curY+8);
             curY += 18;
 
             const detalleHidrico = document.getElementById('obsAgua').value;
