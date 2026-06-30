@@ -321,7 +321,7 @@
         const fallasAgua = [document.getElementById('f_filtrado').value, document.getElementById('f_ablandador').value, document.getElementById('f_osmosis').value].filter(v => v === 'NO OP').length;
         waterColor = (isPendiente) ? 
             (fallasAgua >= 2 ? "ROJO" : (fallasAgua === 1 ? "AMARILLO" : "VERDE")) :
-            ((ppm > 200 || fallasAgua >= 2) ? "ROJO" : (ppm > 150 || fallasAgua === 1 ? "AMARILLO" : "VERDE"));
+            ((ppm > 300 || (ppm > 0 && ppm < 50) || fallasAgua >= 2) ? "ROJO" : (ppm >= 120 || fallasAgua === 1 ? "AMARILLO" : "VERDE"));
         let mS = 0; document.querySelectorAll('.eq-est').forEach(s => { if(s.value==="FUERA DE SERVICIO") mS=2; else if(s.value==="OPERATIVA CON OBS." && mS<2) mS=1; });
         document.getElementById('statusLed').className = `h-5 w-5 rounded-full ${waterColor==='ROJO'||mS===2?'bg-red-600 animate-pulse':'bg-green-500'}`;
         saveDraft();
