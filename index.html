@@ -419,6 +419,12 @@
             document.getElementById('ppm').disabled = ppmPendiente.checked;
         }
         document.getElementById('codigo_informe').value = d.c.cod||'';
+        if (d.c.l && !d.c.cod) {
+            const enc = DB_LOCALES.find(l => l.n.toUpperCase().trim() === d.c.l.toUpperCase().trim());
+            if (enc) {
+                actualizarCodigoInforme(enc.id);
+            }
+        }
         document.getElementById('prioridad').value = d.c.pr || ''; document.getElementById('labor').value = d.c.lab||''; document.getElementById('traslado').value = d.c.via||''; document.getElementById('obsAgua').value = d.c.oa || ''; document.getElementById('obsPrevias').value = d.c.op||''; document.getElementById('obsFinales').value = d.c.of||''; document.getElementById('nombreEncargado').value = d.c.enc||'';
         if (d.e) { document.getElementById('equiposGrid').innerHTML = ''; d.e.forEach(eq => addEquipo(eq)); }
     }
