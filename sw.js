@@ -1,4 +1,4 @@
-const CACHE_NAME = 'mostaza-elite-v12-6';
+const CACHE_NAME = 'mostaza-elite-v12-7';
 const assets = ['index.html', 'manifest.json'];
 
 // Instalación: Guardar archivos en caché y forzar activación inmediata
