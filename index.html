@@ -79,6 +79,10 @@
                         <option value="GARANTIA">CARÁCTER DE GARANTÍA</option>
                     </select>
                 </div>
+                <div class="col-span-6 mt-2">
+                    <label>Código de Informe Único</label>
+                    <input type="text" id="codigo_informe" readonly class="persist bg-gray-100 font-mono text-center font-bold text-gray-700" placeholder="Se genera automáticamente al seleccionar local">
+                </div>
             </div>
         </div>
 
@@ -148,44 +152,44 @@
 
 <script>
     const DB_LOCALES = [
-        { n: "VILLA DEL PARQUE", s: "FVDP", t: "FVDP" }, { n: "SAN JUSTO", s: "FSJU", t: "FCSJ3" }, { n: "LAFERRERE 2", s: "FLF2", t: "FLF2" },
-        { n: "RAMOS", s: "FMRAM", t: "FMRAM" }, { n: "EZEIZA", s: "FEZE", t: "FEZEA" }, { n: "CANNING", s: "FMCAN", t: "FMCAN" },
-        { n: "MONTEGRANDE", s: "FMGD", t: "FMGRA" }, { n: "ZARATE", s: "FZAR", t: "FMZAR" }, { n: "GUALEGUAYCHU", s: "FMGUA", t: "FMGUA" },
-        { n: "CABILDO", s: "FCAB", t: "FCABI" }, { n: "CABILDO 2", s: "FMCYM", t: "FMCYM" }, { n: "GUEMES", s: "FGUE", t: "FGUE" },
-        { n: "URQUIZA", s: "FURQ", t: "FMURQ" }, { n: "PALMAS PILAR", s: "FPPI", t: "FPMPI" }, { n: "SAN ISIDRO", s: "FSIS", t: "FMSIS" },
-        { n: "LA RIOJA", s: "FMRVP", t: "FMRVP" }, { n: "CATAMARCA", s: "FCAT", t: "FMCAT" }, { n: "F. ALVAREZ", s: "FFRA", t: "FFRA" },
-        { n: "MORENO", s: "FMORE", t: "FMMRE" }, { n: "LUJAN", s: "FLUJ", t: "FLUJA" }, { n: "SAN MARTIN 2", s: "FMSVP", t: "FMSVP" },
-        { n: "SAN MARTIN AUTO", s: "FSMA", t: "F3DF" }, { n: "SAN JUAN", s: "FSJN", t: "FSJUA" }, { n: "SAN JUAN 2", s: "FSJ2", t: "FMSJ2" },
-        { n: "TUCUMAN 2", s: "FTU2", t: "FMTCM" }, { n: "TUCUMAN 3", s: "FTU3", t: "FMTM2" }, { n: "TUCUMAN 4", s: "FTU4", t: "FMTU4" },
-        { n: "TUCUMAN 5", s: "FTC5", t: "FTC5" }, { n: "TUCUMAN 6", s: "FTC6", t: "FMTU6" }, { n: "TUCUMAN 7", s: "FMTU7", t: "FMTU7" },
-        { n: "TUCUMAN 8", s: "FTC8", t: "FMTC8" }, { n: "PORTAL TUCUMAN", s: "MPT", t: "MPT" }, { n: "TUCUMAN 9", s: "FMTU9", t: "FMTU9" },
-        { n: "LA PLATA 2", s: "FLP2", t: "FLPCA" }, { n: "LA PLATA 3", s: "FLP3", t: "FLPC3" }, { n: "LA PLATA 4", s: "FLP4", t: "FLPC4" },
-        { n: "CITY BELL", s: "FCYB", t: "FMCB1" }, { n: "REPUBLICA", s: "FRDN", t: "FRPNI" }, { n: "S DEL ESTERO", s: "FSDE", t: "FSANT" },
-        { n: "MENDOZA CENTRO", s: "FMMSM", t: "FMMSM" }, { n: "MENDOZA COLON", s: "FMMCO", t: "FMMCO" }, { n: "SAN RAFAEL", s: "FSRM", t: "FSRM" },
-        { n: "GONNET", s: "FGON", t: "FGONN" }, { n: "BERAZATEGUI", s: "FBER", t: "FMBER" }, { n: "ROTONDA", s: "FMRG", t: "FROG" },
-        { n: "LOMAS AUTO", s: "FLOZ", t: "FMLOA" }, { n: "LOMAS", s: "FMLCA", t: "FMLCA" }, { n: "WILDE", s: "FMWVP", t: "FMWVP" },
-        { n: "BARILOCHE", s: "FBA1", t: "FMBRC" }, { n: "USHUAIA", s: "FUSH", t: "FUSHA" }, { n: "RIO GRANDE", s: "FRGD", t: "FRGRD" },
-        { n: "PORTAL SALTA", s: "FPSA", t: "FTART" }, { n: "SALTA LIBERTAD", s: "FSLI", t: "FSLIB" }, { n: "SALTA PEATONAL", s: "FSVP", t: "FSAL4" },
-        { n: "SALTA AUTO", s: "FSAA", t: "FMSAA" }, { n: "SALTA NOA", s: "MSN", t: "MSN" }, { n: "JUJUY", s: "FJUJ", t: "FJUJY" },
-        { n: "SALTA ORAN", s: "FSAO", t: "FSAO" }, { n: "PARQUE CHAC", s: "FPCH", t: "FMPCH" }, { n: "CONSTITUCION", s: "FMCNT", t: "FMCNT" },
-        { n: "SPINETTO", s: "FSPI", t: "FSPIN" }, { n: "LANUS 2", s: "FLA2", t: "FMLAC" }, { n: "CARRE QUILMES", s: "FCQU", t: "FMQCA" },
-        { n: "LA PAMPA", s: "FLPA", t: "FROSA" }, { n: "FORMOSA", s: "FMFOR", t: "FMFOR" }, { n: "FLORES", s: "FFLO", t: "FFLOR" },
-        { n: "PRIMERA JUNTA", s: "FMPRI", t: "FMPRI" }, { n: "LINIERS", s: "FLIN", t: "FLINR" }, { n: "ONCE", s: "FMONC", t: "FMONC" },
-        { n: "TERRADA", s: "-", t: "-" }, { n: "BOLIVAR", s: "FBOL", t: "FMBLV" }, { n: "JUNIN", s: "FMJUN", t: "FMJUN" },
-        { n: "RIO GALLEGOS", s: "FRGA", t: "-" }, { n: "POMPEYA", s: "FMPYA", t: "FMPYA" }, { n: "GALLEGOS", s: "FMP1", t: "FMDQG" },
-        { n: "ALDREY", s: "FMP2", t: "FMDQ2" }, { n: "LA PERLA", s: "FMD3", t: "FMP3" }, { n: "PEATONAL", s: "FMDQ4", t: "FMDQ4" },
-        { n: "OLAVARRIA", s: "FOLAV", t: "FOLAV" }, { n: "TANDIL", s: "FCTA", t: "FTAND" }, { n: "SAN FERNANDO", s: "FSAF", t: "FSAF" },
-        { n: "GRAND BOURG", s: "FGBG", t: "FGRBG" }, { n: "JOSE C PAZ", s: "FJCP", t: "FMJCP" }, { n: "SAN MIGUEL 3", s: "FSM2", t: "FMSM3" },
-        { n: "SAN MIGUEL A.", s: "FMSMA", t: "FMSMA" }, { n: "MERLO", s: "FMER", t: "FMERL" }, { n: "CORRIENTES", s: "FCOR", t: "FMCOR" },
-        { n: "RESISTENCIA", s: "FMRES", t: "FMRES" }, { n: "SAN LUIS", s: "FSLS", t: "FMSLI" }, { n: "BOEDO", s: "FBOE", t: "FMBOE" },
-        { n: "SAN TELMO", s: "FSTM", t: "FMSTO" }, { n: "AV DE MAYO", s: "FAVM", t: "FAMAY" }, { n: "AV DE MAYO 2", s: "FAVM2", t: "FAMA2" },
-        { n: "9 DE JULIO", s: "F9DJ", t: "FM9JU" }, { n: "CALLAO", s: "FMCYC", t: "FMCYC" }, { n: "RAFAELA", s: "FRAF", t: "FRAFA" },
-        { n: "RIBERA SANTA FE", s: "FRSF", t: "FSFER" }, { n: "WALMART STA FE", s: "FWSF", t: "FSFEW" }, { n: "SANTA FE P.", s: "FMSFV", t: "FMSFV" },
-        { n: "PORTAL ROSARIO", s: "FPRO", t: "FPROS" }, { n: "PELLEGRINI", s: "FPEL", t: "FMROS" }, { n: "ROSARIO SUR", s: "FRSM", t: "FRSM" },
-        { n: "OROÑO", s: "FROA", t: "FORO" }, { n: "SAN NICOLAS", s: "FMSNI", t: "FMSNI" }, { n: "PUMA", s: "FMPUM", t: "FMPUM" },
-        { n: "FUNES", s: "FMPUM", t: "FMFUN" }, { n: "ALTO ROSARIO", s: "MAR", t: "MAR" }, { n: "CITY CENTER", s: "MCR", t: "MCR" },
-        { n: "CASEROS", s: "FMMCB", t: "-" }, { n: "MORON", s: "FMMVP", t: "-" }, { n: "NEUQUEN CENTRO", s: "FMNVP", t: "-" },
-        { n: "ALTO COMAHUE", s: "MNA", t: "-" }, { n: "AV CORDOBA", s: "-", t: "-" }
+        { n: "VILLA DEL PARQUE", s: "FVDP", t: "FVDP", id: 1 }, { n: "SAN JUSTO", s: "FSJU", t: "FCSJ3", id: 2 }, { n: "LAFERRERE 2", s: "FLF2", t: "FLF2", id: 3 },
+        { n: "RAMOS", s: "FMRAM", t: "FMRAM", id: 4 }, { n: "EZEIZA", s: "FEZE", t: "FEZEA", id: 5 }, { n: "CANNING", s: "FMCAN", t: "FMCAN", id: 6 },
+        { n: "MONTEGRANDE", s: "FMGD", t: "FMGRA", id: 7 }, { n: "ZARATE", s: "FZAR", t: "FMZAR", id: 8 }, { n: "GUALEGUAYCHU", s: "FMGUA", t: "FMGUA", id: 9 },
+        { n: "CABILDO", s: "FCAB", t: "FCABI", id: 10 }, { n: "CABILDO 2", s: "FMCYM", t: "FMCYM", id: 11 }, { n: "GUEMES", s: "FGUE", t: "FGUE", id: 12 },
+        { n: "URQUIZA", s: "FURQ", t: "FMURQ", id: 13 }, { n: "PALMAS PILAR", s: "FPPI", t: "FPMPI", id: 14 }, { n: "SAN ISIDRO", s: "FSIS", t: "FMSIS", id: 15 },
+        { n: "LA RIOJA", s: "FMRVP", t: "FMRVP", id: 16 }, { n: "CATAMARCA", s: "FCAT", t: "FMCAT", id: 17 }, { n: "F. ALVAREZ", s: "FFRA", t: "FFRA", id: 18 },
+        { n: "MORENO", s: "FMORE", t: "FMMRE", id: 19 }, { n: "LUJAN", s: "FLUJ", t: "FLUJA", id: 20 }, { n: "SAN MARTIN 2", s: "FMSVP", t: "FMSVP", id: 21 },
+        { n: "SAN MARTIN AUTO", s: "FSMA", t: "F3DF", id: 22 }, { n: "SAN JUAN", s: "FSJN", t: "FSJUA", id: 23 }, { n: "SAN JUAN 2", s: "FSJ2", t: "FMSJ2", id: 24 },
+        { n: "TUCUMAN 2", s: "FTU2", t: "FMTCM", id: 25 }, { n: "TUCUMAN 3", s: "FTU3", t: "FMTM2", id: 26 }, { n: "TUCUMAN 4", s: "FTU4", t: "FMTU4", id: 27 },
+        { n: "TUCUMAN 5", s: "FTC5", t: "FTC5", id: 28 }, { n: "TUCUMAN 6", s: "FTC6", t: "FMTU6", id: 29 }, { n: "TUCUMAN 7", s: "FMTU7", t: "FMTU7", id: 30 },
+        { n: "TUCUMAN 8", s: "FTC8", t: "FMTC8", id: 31 }, { n: "PORTAL TUCUMAN", s: "MPT", t: "MPT", id: 32 }, { n: "TUCUMAN 9", s: "FMTU9", t: "FMTU9", id: 33 },
+        { n: "LA PLATA 2", s: "FLP2", t: "FLPCA", id: 34 }, { n: "LA PLATA 3", s: "FLP3", t: "FLPC3", id: 35 }, { n: "LA PLATA 4", s: "FLP4", t: "FLPC4", id: 36 },
+        { n: "CITY BELL", s: "FCYB", t: "FMCB1", id: 37 }, { n: "REPUBLICA", s: "FRDN", t: "FRPNI", id: 38 }, { n: "S DEL ESTERO", s: "FSDE", t: "FSANT", id: 39 },
+        { n: "MENDOZA CENTRO", s: "FMMSM", t: "FMMSM", id: 40 }, { n: "MENDOZA COLON", s: "FMMCO", t: "FMMCO", id: 41 }, { n: "SAN RAFAEL", s: "FSRM", t: "FSRM", id: 42 },
+        { n: "GONNET", s: "FGON", t: "FGONN", id: 43 }, { n: "BERAZATEGUI", s: "FBER", t: "FMBER", id: 44 }, { n: "ROTONDA", s: "FMRG", t: "FROG", id: 45 },
+        { n: "LOMAS AUTO", s: "FLOZ", t: "FMLOA", id: 46 }, { n: "LOMAS", s: "FMLCA", t: "FMLCA", id: 47 }, { n: "WILDE", s: "FMWVP", t: "FMWVP", id: 48 },
+        { n: "BARILOCHE", s: "FBA1", t: "FMBRC", id: 49 }, { n: "USHUAIA", s: "FUSH", t: "FUSHA", id: 50 }, { n: "RIO GRANDE", s: "FRGD", t: "FRGRD", id: 51 },
+        { n: "PORTAL SALTA", s: "FPSA", t: "FTART", id: 52 }, { n: "SALTA LIBERTAD", s: "FSLI", t: "FSLIB", id: 53 }, { n: "SALTA PEATONAL", s: "FSVP", t: "FSAL4", id: 54 },
+        { n: "SALTA AUTO", s: "FSAA", t: "FMSAA", id: 55 }, { n: "SALTA NOA", s: "MSN", t: "MSN", id: 56 }, { n: "JUJUY", s: "FJUJ", t: "FJUJY", id: 57 },
+        { n: "SALTA ORAN", s: "FSAO", t: "FSAO", id: 58 }, { n: "PARQUE CHAC", s: "FPCH", t: "FMPCH", id: 59 }, { n: "CONSTITUCION", s: "FMCNT", t: "FMCNT", id: 60 },
+        { n: "SPINETTO", s: "FSPI", t: "FSPIN", id: 61 }, { n: "LANUS 2", s: "FLA2", t: "FMLAC", id: 62 }, { n: "CARRE QUILMES", s: "FCQU", t: "FMQCA", id: 63 },
+        { n: "LA PAMPA", s: "FLPA", t: "FROSA", id: 64 }, { n: "FORMOSA", s: "FMFOR", t: "FMFOR", id: 65 }, { n: "FLORES", s: "FFLO", t: "FFLOR", id: 66 },
+        { n: "PRIMERA JUNTA", s: "FMPRI", t: "FMPRI", id: 67 }, { n: "LINIERS", s: "FLIN", t: "FLINR", id: 68 }, { n: "ONCE", s: "FMONC", t: "FMONC", id: 69 },
+        { n: "TERRADA", s: "-", t: "-", id: 70 }, { n: "BOLIVAR", s: "FBOL", t: "FMBLV", id: 71 }, { n: "JUNIN", s: "FMJUN", t: "FMJUN", id: 72 },
+        { n: "RIO GALLEGOS", s: "FRGA", t: "-", id: 73 }, { n: "POMPEYA", s: "FMPYA", t: "FMPYA", id: 74 }, { n: "GALLEGOS", s: "FMP1", t: "FMDQG", id: 75 },
+        { n: "ALDREY", s: "FMP2", t: "FMDQ2", id: 76 }, { n: "LA PERLA", s: "FMD3", t: "FMP3", id: 77 }, { n: "PEATONAL", s: "FMDQ4", t: "FMDQ4", id: 78 },
+        { n: "OLAVARRIA", s: "FOLAV", t: "FOLAV", id: 79 }, { n: "TANDIL", s: "FCTA", t: "FTAND", id: 80 }, { n: "SAN FERNANDO", s: "FSAF", t: "FSAF", id: 81 },
+        { n: "GRAND BOURG", s: "FGBG", t: "FGRBG", id: 82 }, { n: "JOSE C PAZ", s: "FJCP", t: "FMJCP", id: 83 }, { n: "SAN MIGUEL 3", s: "FSM2", t: "FMSM3", id: 84 },
+        { n: "SAN MIGUEL A.", s: "FMSMA", t: "FMSMA", id: 85 }, { n: "MERLO", s: "FMER", t: "FMERL", id: 86 }, { n: "CORRIENTES", s: "FCOR", t: "FMCOR", id: 87 },
+        { n: "RESISTENCIA", s: "FMRES", t: "FMRES", id: 88 }, { n: "SAN LUIS", s: "FSLS", t: "FMSLI", id: 89 }, { n: "BOEDO", s: "FBOE", t: "FMBOE", id: 90 },
+        { n: "SAN TELMO", s: "FSTM", t: "FMSTO", id: 91 }, { n: "AV DE MAYO", s: "FAVM", t: "FAMAY", id: 92 }, { n: "AV DE MAYO 2", s: "FAVM2", t: "FAMA2", id: 93 },
+        { n: "9 DE JULIO", s: "F9DJ", t: "FM9JU", id: 94 }, { n: "CALLAO", s: "FMCYC", t: "FMCYC", id: 95 }, { n: "RAFAELA", s: "FRAF", t: "FRAFA", id: 96 },
+        { n: "RIBERA SANTA FE", s: "FRSF", t: "FSFER", id: 97 }, { n: "WALMART STA FE", s: "FWSF", t: "FSFEW", id: 98 }, { n: "SANTA FE P.", s: "FMSFV", t: "FMSFV", id: 99 },
+        { n: "PORTAL ROSARIO", s: "FPRO", t: "FPROS", id: 100 }, { n: "PELLEGRINI", s: "FPEL", t: "FMROS", id: 101 }, { n: "ROSARIO SUR", s: "FRSM", t: "FRSM", id: 102 },
+        { n: "OROÑO", s: "FROA", t: "FORO", id: 103 }, { n: "SAN NICOLAS", s: "FMSNI", t: "FMSNI", id: 104 }, { n: "PUMA", s: "FMPUM", t: "FMPUM", id: 105 },
+        { n: "FUNES", s: "FMPUM", t: "FMFUN", id: 106 }, { n: "ALTO ROSARIO", s: "MAR", t: "MAR", id: 107 }, { n: "CITY CENTER", s: "MCR", t: "MCR", id: 108 },
+        { n: "CASEROS", s: "FMMCB", t: "-", id: 109 }, { n: "MORON", s: "FMMVP", t: "-", id: 110 }, { n: "NEUQUEN CENTRO", s: "FMNVP", t: "-", id: 111 },
+        { n: "ALTO COMAHUE", s: "MNA", t: "-", id: 112 }, { n: "AV CORDOBA", s: "-", t: "-", id: 113 }
     ];
 
     let padT, padE, processedImages = [], locks = { T: false, E: false }, waterColor = "VERDE";
@@ -228,6 +232,7 @@
             nI.value = enc.n;
             sI.value = enc.s;
             tI.value = enc.t;
+            actualizarCodigoInforme(enc.id);
         } else {
             // Sin coincidencia: prevenimos el arrastre de datos obsoletos
             if (o === 'nombre') {
@@ -254,7 +259,35 @@
                     sI.value = '';
                 }
             }
+            const codInput = document.getElementById('codigo_informe');
+            if (codInput) codInput.value = '';
         }
+        saveDraft();
+    }
+
+    function actualizarCodigoInforme(storeId) {
+        const codigoInput = document.getElementById('codigo_informe');
+        if (!codigoInput) return;
+        
+        let currentCode = codigoInput.value;
+        const storeIdStr = String(storeId).padStart(3, '0');
+        
+        if (currentCode && currentCode.startsWith('MF-')) {
+            const parts = currentCode.split('-');
+            if (parts.length === 3) {
+                codigoInput.value = `MF-${parts[1]}-${storeIdStr}`;
+                saveDraft();
+                return;
+            }
+        }
+        
+        const epoch = new Date('2026-01-01T00:00:00');
+        const now = new Date();
+        const diffMs = now - epoch;
+        const diffMinutes = Math.floor(diffMs / 60000);
+        
+        const minutesStr = String(diffMinutes).padStart(6, '0');
+        codigoInput.value = `MF-${minutesStr}-${storeIdStr}`;
         saveDraft();
     }
 
@@ -369,7 +402,7 @@
 
     function saveDraft() {
         const d = {
-            c: { fe: document.getElementById('fecha').value, l: document.getElementById('local').value, ss: document.getElementById('siglaSis').value, st: document.getElementById('siglaTic').value, t: document.getElementById('ticket').value, tec: document.getElementById('tecnico').value, pr: document.getElementById('prioridad').value, p: document.getElementById('ppm').value, pp: document.getElementById('ppm_pendiente').checked, oa: document.getElementById('obsAgua').value, f: document.getElementById('f_filtrado').value, a: document.getElementById('f_ablandador').value, o: document.getElementById('f_osmosis').value, lab: document.getElementById('labor').value, via: document.getElementById('traslado').value, op: document.getElementById('obsPrevias').value, of: document.getElementById('obsFinales').value, enc: document.getElementById('nombreEncargado').value },
+            c: { fe: document.getElementById('fecha').value, l: document.getElementById('local').value, ss: document.getElementById('siglaSis').value, st: document.getElementById('siglaTic').value, t: document.getElementById('ticket').value, tec: document.getElementById('tecnico').value, pr: document.getElementById('prioridad').value, p: document.getElementById('ppm').value, pp: document.getElementById('ppm_pendiente').checked, cod: document.getElementById('codigo_informe').value, oa: document.getElementById('obsAgua').value, f: document.getElementById('f_filtrado').value, a: document.getElementById('f_ablandador').value, o: document.getElementById('f_osmosis').value, lab: document.getElementById('labor').value, via: document.getElementById('traslado').value, op: document.getElementById('obsPrevias').value, of: document.getElementById('obsFinales').value, enc: document.getElementById('nombreEncargado').value },
             e: Array.from(document.querySelectorAll('.equipo-item')).map(eq => ({ mod: eq.querySelector('.eq-mod').value, sn: eq.querySelector('.eq-sn').value, shots: eq.querySelector('.eq-shots').value, diag: eq.querySelector('.eq-diag').value, det: eq.querySelector('.eq-det').value, hL: eq.querySelector('.h-lanc').value, hT: eq.querySelector('.h-tolv').value, hLe: eq.querySelector('.h-leche').value, hG: eq.querySelector('.h-gral').value, sP: eq.querySelector('.s-past').value, sL: eq.querySelector('.s-liq').value, sS: eq.querySelector('.s-sal').value, repN: eq.querySelector('.eq-rep-n').value, gasF: eq.querySelector('.eq-gas-f').value, est: eq.querySelector('.eq-est').value }))
         };
         localStorage.setItem('mostaza_mtz_v12_5', JSON.stringify(d));
@@ -385,6 +418,7 @@
             ppmPendiente.checked = d.c.pp || false;
             document.getElementById('ppm').disabled = ppmPendiente.checked;
         }
+        document.getElementById('codigo_informe').value = d.c.cod||'';
         document.getElementById('prioridad').value = d.c.pr || ''; document.getElementById('labor').value = d.c.lab||''; document.getElementById('traslado').value = d.c.via||''; document.getElementById('obsAgua').value = d.c.oa || ''; document.getElementById('obsPrevias').value = d.c.op||''; document.getElementById('obsFinales').value = d.c.of||''; document.getElementById('nombreEncargado').value = d.c.enc||'';
         if (d.e) { document.getElementById('equiposGrid').innerHTML = ''; d.e.forEach(eq => addEquipo(eq)); }
     }
@@ -401,7 +435,9 @@
             doc.setTextColor(255); doc.setFontSize(14); doc.setFont("helvetica", "bold"); doc.text("M", 105, 14, {align:'center'});
             doc.setFontSize(10); doc.setTextColor(0); doc.text("MOSTAZA MANTENIMIENTO FRANQUICIAS", 105, 23, {align:'center'});
             doc.setFontSize(12); doc.text("INFORME TÉCNICO", 15, 15);
-            doc.setFontSize(9); doc.setFont("helvetica", "normal"); doc.text(document.getElementById('fecha').value || 'S/D', 185, 15, {align:'right'});
+            doc.setFontSize(9); doc.setFont("helvetica", "normal"); doc.text(document.getElementById('fecha').value || 'S/D', 185, 14, {align:'right'});
+            const reportCode = document.getElementById('codigo_informe').value || 'S/D';
+            doc.setFontSize(8); doc.setFont("helvetica", "bold"); doc.text(reportCode, 185, 18, {align:'right'});
             curY += 10;
 
             doc.setDrawColor(200); doc.rect(15, curY, 180, 25);
