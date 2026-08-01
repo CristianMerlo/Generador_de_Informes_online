@@ -66,8 +66,8 @@
                         <option value="Francisco Rametta">FRANCISCO RAMETTA</option>
                     </select>
                 </div>
-                <div class="col-span-3 mt-2"><label>Tiempo de Labor</label><input type="text" id="labor" class="persist" placeholder="00:00 hs"></div>
-                <div class="col-span-3 mt-2"><label>Tiempo de Traslado (hs)</label><input type="number" id="traslado" class="persist font-bold text-blue-700" min="1" step="1" placeholder="1 hs" onchange="if(this.value && this.value < 1) this.value = 1; this.value = Math.round(this.value);"></div>
+                <div class="col-span-3 mt-2"><label>Tiempo de Labor (hs)</label><input type="number" id="labor" class="persist font-bold text-blue-700" min="2" step="1" placeholder="2 hs" onkeydown="bloquearInvalidos(event)" oninput="validarLabor(this)" onblur="enforzarPisoLabor(this)"></div>
+                <div class="col-span-3 mt-2"><label>Tiempo de Traslado (hs)</label><input type="number" id="traslado" class="persist font-bold text-blue-700" min="0" step="1" placeholder="0 hs" onkeydown="bloquearInvalidos(event)" oninput="validarTraslado(this)" onblur="enforzarDefaultTraslado(this)"></div>
                 <div class="col-span-6 mt-2">
                     <label>Prioridad / Tipo de Servicio</label>
                     <select id="prioridad" class="persist font-bold text-blue-700">
@@ -166,6 +166,8 @@
         padT = new SignaturePad(document.getElementById('padT'));
         padE = new SignaturePad(document.getElementById('padE'));
         initDatalists(); loadDraft();
+        enforzarPisoLabor(document.getElementById('labor'));
+        enforzarDefaultTraslado(document.getElementById('traslado'));
         if(document.querySelectorAll('.equipo-item').length === 0) addEquipo();
         evaluarJerarquia();
         document.querySelectorAll('.persist').forEach(el => el.addEventListener('input', saveDraft));
@@ -388,7 +390,10 @@
                 actualizarCodigoInforme(enc.id);
             }
         }
-        document.getElementById('prioridad').value = d.c.pr || ''; document.getElementById('labor').value = d.c.lab||''; document.getElementById('traslado').value = d.c.via||''; document.getElementById('obsAgua').value = d.c.oa || ''; document.getElementById('obsPrevias').value = d.c.op||''; document.getElementById('obsFinales').value = d.c.of||''; document.getElementById('nombreEncargado').value = d.c.enc||'';
+        document.getElementById('prioridad').value = d.c.pr || ''; 
+        enforzarPisoLabor(document.getElementById('labor'), d.c.lab); 
+        enforzarDefaultTraslado(document.getElementById('traslado'), d.c.via); 
+        document.getElementById('obsAgua').value = d.c.oa || ''; document.getElementById('obsPrevias').value = d.c.op||''; document.getElementById('obsFinales').value = d.c.of||''; document.getElementById('nombreEncargado').value = d.c.enc||'';
         if (d.e) { document.getElementById('equiposGrid').innerHTML = ''; d.e.forEach(eq => addEquipo(eq)); }
     }
 
@@ -396,6 +401,8 @@
 
     function generarPDF() {
         try {
+            enforzarPisoLabor(document.getElementById('labor'));
+            enforzarDefaultTraslado(document.getElementById('traslado'));
             const { jsPDF } = window.jspdf; const doc = new jsPDF();
             let curY = 20;
 
@@ -415,7 +422,7 @@
             doc.text(`Local: ${document.getElementById('local').value} (${document.getElementById('siglaTic').value})`, 20, curY+12);
             doc.text(`Técnico: ${document.getElementById('tecnico').value}`, 20, curY+18);
             doc.text(`Ticket N°: ${document.getElementById('ticket').value}`, 110, curY+12);
-            doc.text(`Labor: ${document.getElementById('labor').value}`, 110, curY+18);
+            doc.text(`Labor: ${document.getElementById('labor').value} hs`, 110, curY+18);
             doc.setFont("helvetica", "bold"); doc.text(`TRASLADO: ${document.getElementById('traslado').value || '0'} hs`, 20, curY+23);
             doc.text(`PRIORIDAD: ${document.getElementById('prioridad').value}`, 110, curY+23);
             curY += 37;
@@ -520,6 +527,46 @@
             const fname = document.getElementById('siglaTic').value || 'Rep';
             doc.save(`MTZ_${fname}_${document.getElementById('fecha').value}.pdf`);
         } catch (e) { alert("Error PDF: " + e.message); }
+    }
+
+    function bloquearInvalidos(e) {
+        if (['e', 'E', '+', '-', '.', ','].includes(e.key)) {
+            e.preventDefault();
+        }
+    }
+
+    function validarLabor(el) {
+        if (el && el.value) {
+            el.value = el.value.replace(/[^0-9]/g, '');
+        }
+    }
+
+    function enforzarPisoLabor(el, customVal) {
+        if (!el) return;
+        let raw = (customVal !== undefined && customVal !== null) ? customVal : el.value;
+        let val = parseInt(raw, 10);
+        if (isNaN(val) || val < 2) {
+            el.value = 2;
+        } else {
+            el.value = val;
+        }
+    }
+
+    function validarTraslado(el) {
+        if (el && el.value) {
+            el.value = el.value.replace(/[^0-9]/g, '');
+        }
+    }
+
+    function enforzarDefaultTraslado(el, customVal) {
+        if (!el) return;
+        let raw = (customVal !== undefined && customVal !== null) ? customVal : el.value;
+        let val = parseInt(raw, 10);
+        if (isNaN(val) || val < 0) {
+            el.value = 0;
+        } else {
+            el.value = val;
+        }
     }
 
     function resetAll() { if(confirm("¿BORRAR?")) { localStorage.clear(); location.reload(); } }
