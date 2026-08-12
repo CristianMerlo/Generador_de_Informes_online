@@ -1,5 +1,5 @@
-const CACHE_NAME = 'mostaza-elite-v12-7';
-const assets = ['index.html', 'manifest.json'];
+const CACHE_NAME = 'mostaza-informes-v12-6';
+const assets = ['./', 'index.html', 'manifest.json'];
 
 // Instalación: Guardar archivos en caché y forzar activación inmediata
 self.addEventListener('install', e => {
@@ -24,23 +24,20 @@ self.addEventListener('activate', e => {
   );
 });
 
-// Estrategia de Fetch: Network-First para index.html (siempre busca la versión online si hay internet)
+// Estrategia de Fetch: Stale-While-Revalidate (Entrega caché ultra-rápida y actualiza en segundo plano)
 self.addEventListener('fetch', e => {
   if (e.request.url.startsWith(self.location.origin)) {
     e.respondWith(
-      fetch(e.request)
-        .then(response => {
-          if (response && response.status === 200) {
-            const responseToCache = response.clone();
-            caches.open(CACHE_NAME).then(cache => {
-              cache.put(e.request, responseToCache);
-            });
+      caches.match(e.request).then(cachedResponse => {
+        const fetchPromise = fetch(e.request).then(networkResponse => {
+          if (networkResponse && networkResponse.status === 200) {
+            const responseToCache = networkResponse.clone();
+            caches.open(CACHE_NAME).then(cache => cache.put(e.request, responseToCache));
           }
-          return response;
-        })
-        .catch(() => {
-          return caches.match(e.request);
-        })
+          return networkResponse;
+        }).catch(() => cachedResponse);
+        return cachedResponse || fetchPromise;
+      })
     );
   }
 });
