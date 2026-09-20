@@ -158,6 +158,7 @@
 
     let padT, padE, processedImages = [], locks = { T: false, E: false }, waterColor = "VERDE";
     let firmaTData = '', firmaEData = ''; // B6/B11: dataURLs de firmas restauradas, re-aplicadas tras el resize
+    let avisoQuotaMostrado = false; // evita repetir la alerta de cuota llena en cada tecla
     const TAREAS = [
         "Limpieza grupo", "Cambio juntas", "Calibración", "Descalcificación", 
         "Gramaje y Recetas", "Limpieza bomba leche", "Limpieza válvula ELF3", 
@@ -166,7 +167,9 @@
 
     // B11: ajustar la resolución interna del canvas al devicePixelRatio y al tamaño renderizado.
     // signature_pad limpia el pad al redimensionar, por eso se preserva y re-restaura el trazo.
-    function resizeCanvas(canvas, pad) {
+    // fallbackDataURL: firma restaurada vía fromDataURL (sin datos de puntos internos); se re-aplica
+    // cuando el pad no tiene trazo "vivo" para que una firma restaurada sobreviva a un resize/rotación.
+    function resizeCanvas(canvas, pad, fallbackDataURL) {
         if (!canvas || !pad) return;
         const data = (typeof pad.toData === 'function' && !pad.isEmpty()) ? pad.toData() : null;
         const ratio = Math.max(window.devicePixelRatio || 1, 1);
@@ -178,12 +181,18 @@
         const ctx = canvas.getContext('2d');
         ctx.scale(ratio, ratio);
         pad.clear(); // reinicia el estado interno tras cambiar el tamaño del canvas
-        if (data) { try { pad.fromData(data); } catch (e) {} }
+        if (data) {
+            // Trazo dibujado en vivo: se preserva con toData/fromData (soporta el nuevo tamaño).
+            try { pad.fromData(data); } catch (e) {}
+        } else if (fallbackDataURL) {
+            // Firma restaurada (sin puntos internos): se re-aplica desde el dataURL guardado.
+            try { pad.fromDataURL(fallbackDataURL); } catch (e) {}
+        }
     }
 
     function resizeAllPads() {
-        resizeCanvas(document.getElementById('padT'), padT);
-        resizeCanvas(document.getElementById('padE'), padE);
+        resizeCanvas(document.getElementById('padT'), padT, firmaTData);
+        resizeCanvas(document.getElementById('padE'), padE, firmaEData);
     }
 
     // B10: avisar de forma visible si alguna librería CDN no cargó.
@@ -457,7 +466,17 @@
         // B6: persistir firmas (solo si no están vacías)
         d.firmaT = (padT && !padT.isEmpty()) ? padT.toDataURL() : '';
         d.firmaE = (padE && !padE.isEmpty()) ? padE.toDataURL() : '';
-        localStorage.setItem('mostaza_mtz_v12_7', JSON.stringify(d));
+        // Guardado defensivo: fotos + firmas pueden acercarse al límite (~5MB) de localStorage.
+        // Si setItem falla (QuotaExceededError) avisamos al técnico una sola vez en lugar de fallar en silencio.
+        try {
+            localStorage.setItem('mostaza_mtz_v12_7', JSON.stringify(d));
+            avisoQuotaMostrado = false;
+        } catch (err) {
+            if (!avisoQuotaMostrado) {
+                avisoQuotaMostrado = true;
+                alert('⚠️ No se pudo guardar el borrador automáticamente: el almacenamiento del navegador está lleno (probablemente por muchas fotos). Generá el PDF ahora para no perder el trabajo y considerá reducir la cantidad de fotos.');
+            }
+        }
     }
 
     function loadDraft() {
@@ -619,7 +638,9 @@
 
             if(curY > 220) { doc.addPage(); curY = 20; }
             doc.line(15, curY, 195, curY); curY += 10;
-            doc.addImage(padT.toDataURL(),'PNG', 15, curY, 60, 30); doc.addImage(padE.toDataURL(),'PNG', 120, curY, 60, 30);
+            // B10: si signature_pad no cargó, padT/padE no existen. Evitamos el crash y omitimos las imágenes de firma.
+            if (padT && typeof padT.toDataURL === 'function') { doc.addImage(padT.toDataURL(),'PNG', 15, curY, 60, 30); }
+            if (padE && typeof padE.toDataURL === 'function') { doc.addImage(padE.toDataURL(),'PNG', 120, curY, 60, 30); }
             doc.setFontSize(8); doc.setFont("helvetica", "bold");
             doc.text("FIRMA TÉCNICO", 15, curY+35); doc.text(`ENCARGADO: ${document.getElementById('nombreEncargado').value || 'CONFORMIDAD'}`, 120, curY+35);
 
