@@ -327,7 +327,12 @@
         else { pad.on(); btn.innerText = "🔓"; box.classList.remove('locked'); }
     }
 
-    function clearPad(t) { if(!locks[t]) (t === 'T' ? padT : padE).clear(); }
+    function clearPad(t) {
+        if (locks[t]) return;
+        (t === 'T' ? padT : padE).clear();
+        // También limpiar el dataURL cacheado para que un resize/rotación no resucite la firma borrada.
+        if (t === 'T') firmaTData = ''; else firmaEData = '';
+    }
 
     function togglePpmPendiente() {
         const isPendiente = document.getElementById('ppm_pendiente').checked;
