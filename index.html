@@ -157,16 +157,79 @@
     ];
 
     let padT, padE, processedImages = [], locks = { T: false, E: false }, waterColor = "VERDE";
+    let firmaTData = '', firmaEData = ''; // B6/B11: dataURLs de firmas restauradas, re-aplicadas tras el resize
+    let avisoQuotaMostrado = false; // evita repetir la alerta de cuota llena en cada tecla
     const TAREAS = [
         "Limpieza grupo", "Cambio juntas", "Calibración", "Descalcificación", 
         "Gramaje y Recetas", "Limpieza bomba leche", "Limpieza válvula ELF3", 
         "Limpieza chicler", "Destapado desagüe"
     ];
 
+    // B11: ajustar la resolución interna del canvas al devicePixelRatio y al tamaño renderizado.
+    // signature_pad limpia el pad al redimensionar, por eso se preserva y re-restaura el trazo.
+    // fallbackDataURL: firma restaurada vía fromDataURL (sin datos de puntos internos); se re-aplica
+    // cuando el pad no tiene trazo "vivo" para que una firma restaurada sobreviva a un resize/rotación.
+    function resizeCanvas(canvas, pad, fallbackDataURL) {
+        if (!canvas || !pad) return;
+        const data = (typeof pad.toData === 'function' && !pad.isEmpty()) ? pad.toData() : null;
+        const ratio = Math.max(window.devicePixelRatio || 1, 1);
+        const rect = canvas.getBoundingClientRect();
+        const w = rect.width || canvas.clientWidth || canvas.width;
+        const h = rect.height || canvas.clientHeight || canvas.height;
+        canvas.width = w * ratio;
+        canvas.height = h * ratio;
+        const ctx = canvas.getContext('2d');
+        ctx.scale(ratio, ratio);
+        pad.clear(); // reinicia el estado interno tras cambiar el tamaño del canvas
+        if (data) {
+            // Trazo dibujado en vivo: se preserva con toData/fromData (soporta el nuevo tamaño).
+            try { pad.fromData(data); } catch (e) {}
+        } else if (fallbackDataURL) {
+            // Firma restaurada (sin puntos internos): se re-aplica desde el dataURL guardado.
+            try { pad.fromDataURL(fallbackDataURL); } catch (e) {}
+        }
+    }
+
+    function resizeAllPads() {
+        resizeCanvas(document.getElementById('padT'), padT, firmaTData);
+        resizeCanvas(document.getElementById('padE'), padE, firmaEData);
+    }
+
+    // B10: avisar de forma visible si alguna librería CDN no cargó.
+    function avisarCdnFaltante(msg) {
+        let banner = document.getElementById('cdnWarnBanner');
+        if (!banner) {
+            banner = document.createElement('div');
+            banner.id = 'cdnWarnBanner';
+            banner.style.cssText = 'background:#b91c1c;color:#fff;padding:10px;text-align:center;font-weight:bold;font-size:12px;position:sticky;top:0;z-index:100;';
+            document.body.insertBefore(banner, document.body.firstChild);
+        }
+        banner.innerText = msg;
+    }
+
     window.onload = () => {
-        padT = new SignaturePad(document.getElementById('padT'));
-        padE = new SignaturePad(document.getElementById('padE'));
+        // B10: detectar CDNs faltantes sin frenar el resto del onload.
+        const faltaSignature = (typeof SignaturePad === 'undefined');
+        const faltaJsPdf = (typeof window.jspdf === 'undefined');
+        if (faltaSignature || faltaJsPdf) {
+            const libs = [];
+            if (faltaSignature) libs.push('firmas (signature_pad)');
+            if (faltaJsPdf) libs.push('PDF (jsPDF)');
+            avisarCdnFaltante(`⚠️ No se pudieron cargar librerías necesarias: ${libs.join(' y ')}. Verificá tu conexión a internet y recargá la app.`);
+        }
+
+        if (!faltaSignature) {
+            padT = new SignaturePad(document.getElementById('padT'));
+            padE = new SignaturePad(document.getElementById('padE'));
+        }
         initDatalists(); loadDraft();
+        // B11: redimensionar después de loadDraft (que ya restauró las firmas) para que sobrevivan al primer layout.
+        if (!faltaSignature) {
+            resizeAllPads();
+            restaurarFirmas(); // aplicar firmas restauradas sobre los pads ya dimensionados
+            window.addEventListener('resize', resizeAllPads);
+            window.addEventListener('orientationchange', resizeAllPads);
+        }
         enforzarPisoLabor(document.getElementById('labor'));
         enforzarDefaultTraslado(document.getElementById('traslado'));
         if(document.querySelectorAll('.equipo-item').length === 0) addEquipo();
@@ -264,7 +327,12 @@
         else { pad.on(); btn.innerText = "🔓"; box.classList.remove('locked'); }
     }
 
-    function clearPad(t) { if(!locks[t]) (t === 'T' ? padT : padE).clear(); }
+    function clearPad(t) {
+        if (locks[t]) return;
+        (t === 'T' ? padT : padE).clear();
+        // También limpiar el dataURL cacheado para que un resize/rotación no resucite la firma borrada.
+        if (t === 'T') firmaTData = ''; else firmaEData = '';
+    }
 
     function togglePpmPendiente() {
         const isPendiente = document.getElementById('ppm_pendiente').checked;
@@ -280,17 +348,33 @@
 
     function evaluarJerarquia() {
         const isPendiente = document.getElementById('ppm_pendiente') ? document.getElementById('ppm_pendiente').checked : false;
-        let ppm = 0;
+        // B9: distinguir campo vacío ('') de un 0 real.
+        let ppm = null; // null = sin lectura
         if (!isPendiente) {
-            ppm = parseInt(document.getElementById('ppm').value) || 0;
+            const rawPpm = (document.getElementById('ppm').value || '').trim();
+            if (rawPpm !== '') {
+                const parsed = parseInt(rawPpm, 10);
+                ppm = isNaN(parsed) ? null : parsed;
+            }
         }
+        const tieneLectura = ppm !== null;
         const fallasAgua = [document.getElementById('f_filtrado').value, document.getElementById('f_ablandador').value, document.getElementById('f_osmosis').value].filter(v => v === 'NO OP').length;
         waterColor = (isPendiente) ? 
             (fallasAgua >= 2 ? "ROJO" : (fallasAgua === 1 ? "AMARILLO" : "VERDE")) :
-            ((ppm > 300 || (ppm > 0 && ppm < 50) || fallasAgua >= 2) ? "ROJO" : (ppm >= 120 || fallasAgua === 1 ? "AMARILLO" : "VERDE"));
+            (((tieneLectura && (ppm > 300 || (ppm >= 0 && ppm < 50))) || fallasAgua >= 2) ? "ROJO" : ((tieneLectura && ppm >= 120) || fallasAgua === 1 ? "AMARILLO" : "VERDE"));
         let mS = 0; document.querySelectorAll('.eq-est').forEach(s => { if(s.value==="FUERA DE SERVICIO") mS=2; else if(s.value==="OPERATIVA CON OBS." && mS<2) mS=1; });
         document.getElementById('statusLed').className = `h-5 w-5 rounded-full ${waterColor==='ROJO'||mS===2?'bg-red-600 animate-pulse':'bg-green-500'}`;
         saveDraft();
+    }
+
+    // B15: escapar valores dinámicos antes de inyectarlos en innerHTML (mitiga XSS almacenado)
+    function escapeHtml(val) {
+        return String(val == null ? '' : val)
+            .replace(/&/g, '&amp;')
+            .replace(/</g, '&lt;')
+            .replace(/>/g, '&gt;')
+            .replace(/"/g, '&quot;')
+            .replace(/'/g, '&#39;');
     }
 
     function addEquipo(v = null) {
@@ -301,13 +385,13 @@
                     <option value="Cimbali" ${v?.mod==='Cimbali'?'selected':''}>CIMBALI</option><option value="Melitta" ${v?.mod==='Melitta'?'selected':''}>MELITTA</option><option value="Otros" ${v?.mod==='Otros'?'selected':''}>OTROS</option>
                 </select>
                 <div class="flex gap-2 w-full sm:w-auto">
-                    <div class="flex flex-col"><label class="text-[7px]">S/N</label><input type="text" class="persist-dyn eq-sn text-xs text-right border-none" value="${v?.sn||''}"></div>
-                    <div class="flex flex-col"><label class="text-[7px]">Shoots</label><input type="number" class="persist-dyn eq-shots text-xs text-right border-none font-black text-blue-600" value="${v?.shots||''}"></div>
+                    <div class="flex flex-col"><label class="text-[7px]">S/N</label><input type="text" class="persist-dyn eq-sn text-xs text-right border-none" value="${escapeHtml(v?.sn||'')}"></div>
+                    <div class="flex flex-col"><label class="text-[7px]">Shoots</label><input type="number" class="persist-dyn eq-shots text-xs text-right border-none font-black text-blue-600" value="${escapeHtml(v?.shots||'')}"></div>
                     <button type="button" onclick="this.closest('.equipo-item').remove(); evaluarJerarquia();" class="ml-2 text-red-500 font-bold">&times;</button>
                 </div>
             </div>
-            <textarea placeholder="DIAGNÓSTICO..." class="persist-dyn eq-diag text-xs mb-2" rows="2">${v?.diag||''}</textarea>
-            <textarea placeholder="TRABAJOS REALIZADOS..." class="persist-dyn eq-det text-xs mb-2" rows="2">${v?.det||''}</textarea>
+            <textarea placeholder="DIAGNÓSTICO..." class="persist-dyn eq-diag text-xs mb-2" rows="2">${escapeHtml(v?.diag||'')}</textarea>
+            <textarea placeholder="TRABAJOS REALIZADOS..." class="persist-dyn eq-det text-xs mb-2" rows="2">${escapeHtml(v?.det||'')}</textarea>
             <div class="flex flex-wrap gap-1 mb-2">${TAREAS.map(t=>`<span class="tag-btn text-[9px]" onclick="addTask(this,'${t}')">${t}</span>`).join('')}</div>
             
             <div class="card bg-gray-50 border-none p-2 mt-2">
@@ -330,8 +414,8 @@
             </div>
 
             <div class="space-y-2 border-t pt-2 mt-2">
-                <input type="text" placeholder="PEDIDO REPUESTOS" class="persist-dyn eq-rep-n text-[10px]" value="${v?.repN||''}">
-                <input type="number" placeholder="GASTOS FERRETERÍA / INSUMOS (ARS)" class="persist-dyn eq-gas-f text-[10px] font-bold text-green-700" value="${v?.gasF||''}" min="0" step="any">
+                <input type="text" placeholder="PEDIDO REPUESTOS" class="persist-dyn eq-rep-n text-[10px]" value="${escapeHtml(v?.repN||'')}">
+                <input type="number" placeholder="GASTOS FERRETERÍA / INSUMOS (ARS)" class="persist-dyn eq-gas-f text-[10px] font-bold text-green-700" value="${escapeHtml(v?.gasF||'')}" min="0" step="any">
                 <select class="persist-dyn eq-est font-bold text-xs" onchange="evaluarJerarquia()">
                     <option value="OPERATIVA" ${v?.est==='OPERATIVA'?'selected':''}>OPERATIVA</option><option value="OPERATIVA CON OBS." ${v?.est==='OPERATIVA CON OBS.'?'selected':''}>OPERATIVA CON OBS.</option><option value="FUERA DE SERVICIO" ${v?.est==='FUERA DE SERVICIO'?'selected':''}>FUERA DE SERVICIO</option>
                 </select>
@@ -342,15 +426,16 @@
 
     function addTask(b, t) { const a = b.closest('.equipo-item').querySelectorAll('textarea')[1]; a.value += (a.value ? ', ' : '') + t; saveDraft(); }
 
+    function renderFotoPreview() {
+        const prev = document.getElementById('fotoPreview');
+        if (!prev) return;
+        prev.innerHTML = '';
+        processedImages.forEach(img => { const d = document.createElement('div'); d.className = "h-12 border-2 border-orange-500 rounded bg-cover bg-center"; d.style.backgroundImage = `url(${img})`; prev.appendChild(d); });
+    }
+
     document.getElementById('fotoInput').onchange = async (e) => {
-        const total = e.target.files.length;
         const help = document.getElementById('fotoHelp');
-        if (total > 8) {
-            help.innerText = `⚠️ Límite: Se cargaron las primeras 8 de ${total} fotos.`;
-        } else {
-            help.innerText = '';
-        }
-        const files = Array.from(e.target.files).slice(0, 8); processedImages = [];
+        const files = Array.from(e.target.files);
         const prev = document.getElementById('fotoPreview'); prev.innerHTML = "<p class='col-span-4 text-[8px] animate-pulse'>Procesando...</p>";
         for (const f of files) {
             const data = await new Promise(res => {
@@ -363,7 +448,17 @@
             });
             processedImages.push(data);
         }
-        prev.innerHTML = ''; processedImages.forEach(img => { const d = document.createElement('div'); d.className = "h-12 border-2 border-orange-500 rounded bg-cover bg-center"; d.style.backgroundImage = `url(${img})`; prev.appendChild(d); });
+        // B8: acumular sobre las existentes respetando el tope de 8 fotos
+        const totalAcumulado = processedImages.length;
+        processedImages = processedImages.slice(0, 8);
+        if (totalAcumulado > 8) {
+            help.innerText = `⚠️ Límite: Se conservan las primeras 8 fotos (se descartaron ${totalAcumulado - 8}).`;
+        } else {
+            help.innerText = '';
+        }
+        renderFotoPreview();
+        e.target.value = '';
+        saveDraft();
     };
 
     function saveDraft() {
@@ -371,14 +466,38 @@
             c: { fe: document.getElementById('fecha').value, l: document.getElementById('local').value, ss: document.getElementById('siglaSis').value, st: document.getElementById('siglaTic').value, t: document.getElementById('ticket').value, tec: document.getElementById('tecnico').value, pr: document.getElementById('prioridad').value, p: document.getElementById('ppm').value, pp: document.getElementById('ppm_pendiente').checked, cod: document.getElementById('codigo_informe').value, oa: document.getElementById('obsAgua').value, f: document.getElementById('f_filtrado').value, a: document.getElementById('f_ablandador').value, o: document.getElementById('f_osmosis').value, lab: document.getElementById('labor').value, via: document.getElementById('traslado').value, op: document.getElementById('obsPrevias').value, of: document.getElementById('obsFinales').value, enc: document.getElementById('nombreEncargado').value },
             e: Array.from(document.querySelectorAll('.equipo-item')).map(eq => ({ mod: eq.querySelector('.eq-mod').value, sn: eq.querySelector('.eq-sn').value, shots: eq.querySelector('.eq-shots').value, diag: eq.querySelector('.eq-diag').value, det: eq.querySelector('.eq-det').value, hL: eq.querySelector('.h-lanc').value, hT: eq.querySelector('.h-tolv').value, hLe: eq.querySelector('.h-leche').value, hG: eq.querySelector('.h-gral').value, sP: eq.querySelector('.s-past').value, sL: eq.querySelector('.s-liq').value, sS: eq.querySelector('.s-sal').value, repN: eq.querySelector('.eq-rep-n').value, gasF: eq.querySelector('.eq-gas-f').value, est: eq.querySelector('.eq-est').value }))
         };
-        localStorage.setItem('mostaza_mtz_v12_7', JSON.stringify(d));
+        // B4: persistir fotos procesadas
+        d.img = processedImages;
+        // B6: persistir firmas (solo si no están vacías)
+        d.firmaT = (padT && !padT.isEmpty()) ? padT.toDataURL() : '';
+        d.firmaE = (padE && !padE.isEmpty()) ? padE.toDataURL() : '';
+        // Guardado defensivo: fotos + firmas pueden acercarse al límite (~5MB) de localStorage.
+        // Si setItem falla (QuotaExceededError) avisamos al técnico una sola vez en lugar de fallar en silencio.
+        try {
+            localStorage.setItem('mostaza_mtz_v12_7', JSON.stringify(d));
+            avisoQuotaMostrado = false;
+        } catch (err) {
+            if (!avisoQuotaMostrado) {
+                avisoQuotaMostrado = true;
+                alert('⚠️ No se pudo guardar el borrador automáticamente: el almacenamiento del navegador está lleno (probablemente por muchas fotos). Generá el PDF ahora para no perder el trabajo y considerá reducir la cantidad de fotos.');
+            }
+        }
     }
 
     function loadDraft() {
         let r = localStorage.getItem('mostaza_mtz_v12_7');
         if (r === null) { const old = localStorage.getItem('mostaza_mtz_v12_5'); if (old !== null) { localStorage.setItem('mostaza_mtz_v12_7', old); r = old; } }
         if (!r) return;
-        const d = JSON.parse(r); document.getElementById('fecha').value = d.c.fe||''; document.getElementById('local').value = d.c.l||''; document.getElementById('siglaSis').value = d.c.ss||'';
+        // B5: parseo defensivo. Si el dato está corrupto o en formato viejo, limpiamos y arrancamos limpio.
+        let d;
+        try {
+            d = JSON.parse(r);
+            if (!d || typeof d !== 'object' || !d.c) throw new Error('Formato de borrador inválido');
+        } catch (err) {
+            localStorage.removeItem('mostaza_mtz_v12_7');
+            return;
+        }
+        document.getElementById('fecha').value = d.c.fe||''; document.getElementById('local').value = d.c.l||''; document.getElementById('siglaSis').value = d.c.ss||'';
         document.getElementById('siglaTic').value = d.c.st||''; document.getElementById('ticket').value = d.c.t||''; document.getElementById('tecnico').value = d.c.tec||'';
         document.getElementById('ppm').value = d.c.p||''; 
         const ppmPendiente = document.getElementById('ppm_pendiente');
@@ -398,12 +517,39 @@
         enforzarDefaultTraslado(document.getElementById('traslado'), d.c.via); 
         document.getElementById('obsAgua').value = d.c.oa || ''; document.getElementById('obsPrevias').value = d.c.op||''; document.getElementById('obsFinales').value = d.c.of||''; document.getElementById('nombreEncargado').value = d.c.enc||'';
         if (d.e) { document.getElementById('equiposGrid').innerHTML = ''; d.e.forEach(eq => addEquipo(eq)); }
+        // B4: restaurar fotos y previews
+        if (Array.isArray(d.img)) { processedImages = d.img.slice(0, 8); renderFotoPreview(); }
+        // B6: guardar firmas para re-aplicarlas después del resize del canvas (B11 limpia el pad al redimensionar)
+        firmaTData = d.firmaT || '';
+        firmaEData = d.firmaE || '';
+    }
+
+    // B6/B11: aplica las firmas guardadas sobre los pads ya redimensionados
+    function restaurarFirmas() {
+        if (padT && firmaTData) { try { padT.fromDataURL(firmaTData); } catch (e) {} }
+        if (padE && firmaEData) { try { padE.fromDataURL(firmaEData); } catch (e) {} }
     }
 
     function getSemCol(s) { return s === "ROJO" ? [200, 0, 0] : (s === "AMARILLO" ? [255, 191, 0] : [0, 150, 0]); }
 
     function generarPDF() {
         try {
+            // B10: verificar que la librería jsPDF esté disponible antes de usarla
+            if (!window.jspdf || !window.jspdf.jsPDF) {
+                alert("No se pudo cargar la librería para generar el PDF (jsPDF). Verificá tu conexión a internet e intentá de nuevo.");
+                return;
+            }
+            // B12: validación suave de campos mínimos (local y fecha)
+            const localVal = (document.getElementById('local').value || '').trim();
+            const fechaVal = (document.getElementById('fecha').value || '').trim();
+            const faltantes = [];
+            if (!localVal) faltantes.push('Nombre Sucursal');
+            if (!fechaVal) faltantes.push('Fecha');
+            if (faltantes.length > 0) {
+                if (!confirm(`Faltan datos: ${faltantes.join(' y ')}. ¿Generar el informe de todos modos?`)) {
+                    return;
+                }
+            }
             enforzarPisoLabor(document.getElementById('labor'));
             enforzarDefaultTraslado(document.getElementById('traslado'));
             const { jsPDF } = window.jspdf; const doc = new jsPDF();
@@ -497,7 +643,9 @@
 
             if(curY > 220) { doc.addPage(); curY = 20; }
             doc.line(15, curY, 195, curY); curY += 10;
-            doc.addImage(padT.toDataURL(),'PNG', 15, curY, 60, 30); doc.addImage(padE.toDataURL(),'PNG', 120, curY, 60, 30);
+            // B10: si signature_pad no cargó, padT/padE no existen. Evitamos el crash y omitimos las imágenes de firma.
+            if (padT && typeof padT.toDataURL === 'function') { doc.addImage(padT.toDataURL(),'PNG', 15, curY, 60, 30); }
+            if (padE && typeof padE.toDataURL === 'function') { doc.addImage(padE.toDataURL(),'PNG', 120, curY, 60, 30); }
             doc.setFontSize(8); doc.setFont("helvetica", "bold");
             doc.text("FIRMA TÉCNICO", 15, curY+35); doc.text(`ENCARGADO: ${document.getElementById('nombreEncargado').value || 'CONFORMIDAD'}`, 120, curY+35);
 
