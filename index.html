@@ -4,10 +4,38 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <meta name="google" content="notranslate">
-    <title>MANTENIMIENTO FRANQUICIAS V12.7</title>
-    
+    <title>MANTENIMIENTO FRANQUICIAS V12.8</title>
+
+    <!-- CSS critico anti-FOUC: se aplica en el primer render, antes de Tailwind.
+         Pinta el fondo de marca y una barra roja superior al instante, para que
+         el arranque ya sea "de la marca". Incluye fallback por timeout para no
+         dejar la pagina invisible si algo falla. -->
+    <style>
+        html { background: #F4F7F6; }
+        /* Barra superior de marca visible al instante (identidad de marca en el primer paint). */
+        body::before {
+            content: ""; position: fixed; top: 0; left: 0; right: 0; height: 64px;
+            background: linear-gradient(135deg, #D32F2F 0%, #B71C1C 100%);
+            z-index: 1; pointer-events: none;
+        }
+        /* El contenido arranca semioculto y se revela cuando la app esta lista (clase mtz-listo). */
+        body > * { opacity: 0; }
+        html.mtz-listo body::before { display: none; }
+        html.mtz-listo body > * { opacity: 1; transition: opacity .2s ease-out; }
+        @media (prefers-reduced-motion: reduce) { html.mtz-listo body > * { transition: none; } }
+    </style>
+    <script>
+        // Revelado del contenido con fallback por timeout: si algo falla, la pagina no queda invisible.
+        (function () {
+            function revelar() { document.documentElement.classList.add('mtz-listo'); }
+            if (document.readyState === 'complete') { revelar(); }
+            else { window.addEventListener('load', revelar); }
+            setTimeout(revelar, 2500);
+        })();
+    </script>
+
     <link rel="manifest" href="manifest.json">
-    <meta name="theme-color" content="#1A1A1B">
+    <meta name="theme-color" content="#B71C1C">
     <meta name="mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
@@ -27,35 +55,79 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/signature_pad@4.0.0/dist/signature_pad.umd.min.js"></script>
     <style>
-        :root { --mostaza: #F58220; }
-        body { background-color: #f3f4f6; font-family: sans-serif; -webkit-tap-highlight-color: transparent; }
-        .card { background: white; border: 2px solid #d1d5db; border-radius: 8px; padding: 1rem; margin-bottom: 1rem; }
-        label { font-size: 9px; font-weight: 900; text-transform: uppercase; color: #6b7280; display: block; margin-bottom: 2px; }
-        input, select, textarea { border: 2px solid #9ca3af !important; padding: 10px !important; font-size: 14px !important; width: 100%; border-radius: 4px; background: #fff; color: #000; }
-        .signature-box { border: 2px solid #000; background: #fff; border-radius: 4px; position: relative; }
-        .lock-btn { position: absolute; top: 5px; right: 5px; z-index: 10; background: #eee; padding: 5px; border-radius: 4px; border: 1px solid #ccc; font-size: 12px; }
+        /* Sistema de paleta roja de marca (referencia mostaza-auditoria-tecnica).
+           El naranja queda fuera de la app por completo. */
+        :root {
+            --c-marca: #D32F2F; --c-marca-oscuro: #B71C1C; --c-tinta: #1A1A1B;
+            --c-fondo: #F4F7F6; --c-superficie: #ffffff; --c-borde: #e2e5e4;
+            --c-borde-input: #9ca3af; --c-label: #6b7280; --c-texto: #333333;
+            --c-verde: #16a34a; --c-amarillo: #eab308; --c-rojo: #c80000;
+            --radio: 12px; --sombra: 0 2px 8px rgba(0,0,0,.08);
+        }
+        body { background-color: var(--c-fondo); font-family: sans-serif; -webkit-tap-highlight-color: transparent; color: var(--c-texto); }
+
+        /* Tarjetas: fondo blanco, borde izquierdo rojo de marca, radio 12px, sombra suave y aparicion fadein. */
+        .card {
+            background: var(--c-superficie); border: 1px solid var(--c-borde);
+            border-left: 5px solid var(--c-marca); border-radius: var(--radio);
+            padding: 1rem; margin-bottom: 1rem; box-shadow: var(--sombra);
+            animation: fadein .18s ease-out;
+        }
+        @keyframes fadein { from { opacity: 0; transform: translateY(4px); } to { opacity: 1; transform: none; } }
+        @media (prefers-reduced-motion: reduce) { .card { animation: none; } }
+
+        label { font-size: 9px; font-weight: 900; text-transform: uppercase; color: var(--c-label); display: block; margin-bottom: 2px; }
+
+        /* Inputs/selects/textarea: borde gris, radio 12px, foco con outline rojo de marca. */
+        input, select, textarea { border: 2px solid var(--c-borde-input) !important; padding: 10px !important; font-size: 14px !important; width: 100%; border-radius: var(--radio); background: #fff; color: #000; }
+        input:focus, select:focus, textarea:focus { outline: 3px solid var(--c-marca); outline-offset: 1px; }
+
+        .signature-box { border: 2px solid var(--c-tinta); background: #fff; border-radius: var(--radio); position: relative; }
+        .lock-btn { position: absolute; top: 5px; right: 5px; z-index: 10; background: #eee; padding: 5px; border-radius: 8px; border: 1px solid #ccc; font-size: 12px; }
         .locked { background: #fee2e2 !important; opacity: 0.8; }
-        .tag-btn { background: #e5e7eb; border: 1px solid #9ca3af; padding: 6px 10px; border-radius: 4px; font-size: 11px; font-weight: bold; cursor: pointer; }
+        .tag-btn { background: #e5e7eb; border: 1px solid var(--c-borde-input); padding: 6px 10px; border-radius: 8px; font-size: 11px; font-weight: bold; cursor: pointer; }
+
+        /* Header de marca con gradiente rojo diagonal. */
+        .app-header { background: linear-gradient(135deg, #D32F2F 0%, #B71C1C 100%); }
+
+        /* Caja blanca redondeada para el logo oficial, con fallback a la letra "M". */
+        .logo-caja { flex: 0 0 auto; width: 40px; height: 40px; border-radius: 10px; background: #fff; box-shadow: var(--sombra); display: flex; align-items: center; justify-content: center; overflow: hidden; }
+        .logo-img { width: 100%; height: 100%; object-fit: contain; padding: 3px; }
+        .logo-caja--fallback { color: var(--c-marca); font-weight: 900; font-size: 22px; }
+
+        /* Semaforo/LED de estado: circular con borde blanco (la logica de color la maneja el JS). */
+        #statusLed { border: 2px solid #fff; box-shadow: 0 0 0 1px rgba(0,0,0,.08); }
+
+        /* Textos de acento en color de marca. */
+        .texto-marca { color: var(--c-marca); }
+
+        /* Botones al lenguaje de la referencia. */
+        .btn-principal { background: var(--c-marca); border-bottom: 4px solid var(--c-marca-oscuro); color: #fff; }
+        .btn-peligro { background: var(--c-rojo); color: #fff; }
+
+        /* Miniatura de foto con borde de marca. */
+        .foto-mini { border: 2px solid var(--c-marca); }
     </style>
 </head>
 <body class="pb-24">
 
-<header class="bg-[#1A1A1B] text-white p-4 sticky top-0 z-50 flex justify-between items-center border-b-4 border-[#F58220]">
+<header class="app-header text-white p-4 sticky top-0 z-50 flex justify-between items-center">
     <div class="flex items-center gap-3">
+        <span class="logo-caja"><img class="logo-img" src="img/logo.png" alt="Mostaza" onerror="this.style.display='none';this.parentNode.classList.add('logo-caja--fallback');this.parentNode.textContent='M';"></span>
         <div id="statusLed" class="h-5 w-5 rounded-full bg-gray-500"></div>
-        <h1 class="text-xs sm:text-lg font-bold uppercase">Mostaza <span class="text-[#F58220]">Mantenimiento Franquicias V12.7</span></h1>
+        <h1 class="text-xs sm:text-lg font-bold uppercase">Mostaza <span class="text-white">Mantenimiento Franquicias V12.8</span></h1>
     </div>
-    <button onclick="resetAll()" class="bg-red-700 p-2 rounded text-[10px] font-bold text-white uppercase">Limpiar Todo</button>
+    <button onclick="resetAll()" class="btn-peligro p-2 rounded text-[10px] font-bold text-white uppercase">Limpiar Todo</button>
 </header>
 
 <main class="max-w-2xl mx-auto p-3">
     <form id="mainForm">
-        <div class="card border-l-8 border-l-orange-500">
+        <div class="card">
             <h3 class="text-xs font-black uppercase text-gray-500 mb-3 border-b">1. Datos de la Intervención</h3>
             <div class="grid grid-cols-6 gap-2">
                 <div class="col-span-4"><label>Fecha</label><input type="date" id="fecha" class="persist font-bold"></div>
                 <div class="col-span-2"><label>Ticket #</label><input type="text" id="ticket" class="persist"></div>
-                <div class="col-span-6"><label>Nombre Sucursal</label><input type="text" id="local" list="listaNombres" class="persist uppercase font-bold text-orange-600" oninput="sincronizar('nombre')"><datalist id="listaNombres"></datalist></div>
+                <div class="col-span-6"><label>Nombre Sucursal</label><input type="text" id="local" list="listaNombres" class="persist uppercase font-bold texto-marca" oninput="sincronizar('nombre')"><datalist id="listaNombres"></datalist></div>
                 <div class="col-span-3"><label>Sigla Sistema</label><input type="text" id="siglaSis" list="listaSiglaSis" class="persist text-center font-bold" oninput="sincronizar('sis')"><datalist id="listaSiglaSis"></datalist></div>
                 <div class="col-span-3"><label>Sigla Ticket</label><input type="text" id="siglaTic" list="listaSiglaTic" class="persist text-center font-bold" oninput="sincronizar('tic')"><datalist id="listaSiglaTic"></datalist></div>
                 <div class="col-span-6 mt-2">
@@ -117,8 +189,8 @@
         <div id="equiposGrid"></div>
         <button type="button" onclick="addEquipo()" class="w-full mb-6 py-3 border-2 border-dashed border-gray-400 font-bold text-gray-400 uppercase text-xs">+ Añadir Equipo</button>
 
-        <div class="card border-l-8 border-l-orange-400">
-            <h3 class="text-xs font-black uppercase mb-2 text-orange-500 border-b">5. Registro Fotográfico</h3>
+        <div class="card">
+            <h3 class="text-xs font-black uppercase mb-2 texto-marca border-b">5. Registro Fotográfico</h3>
             <div class="flex flex-wrap items-center gap-2 mb-2">
                 <input type="file" id="fotoInput" accept="image/*" multiple class="text-xs w-auto">
                 <span id="fotoHelp" class="text-[10px] text-red-600 font-bold"></span>
@@ -147,7 +219,7 @@
             </div>
         </div>
 
-        <button type="button" onclick="generarPDF()" class="w-full bg-[#F58220] text-white py-4 text-xl font-black uppercase rounded shadow-xl border-b-4 border-orange-800">Generar Informe V12.7</button>
+        <button type="button" onclick="generarPDF()" class="btn-principal w-full text-white py-4 text-xl font-black uppercase rounded shadow-xl">Generar Informe V12.8</button>
     </form>
 </main>
 
@@ -378,10 +450,10 @@
     }
 
     function addEquipo(v = null) {
-        const div = document.createElement('div'); div.className = "card equipo-item border-l-8 border-l-orange-500";
+        const div = document.createElement('div'); div.className = "card equipo-item";
         div.innerHTML = `
             <div class="flex flex-wrap justify-between items-center mb-3 gap-2">
-                <select translate="no" class="persist-dyn eq-mod font-bold text-orange-600 w-full sm:w-1/2 border-none p-0 bg-transparent notranslate">
+                <select translate="no" class="persist-dyn eq-mod font-bold texto-marca w-full sm:w-1/2 border-none p-0 bg-transparent notranslate">
                     <option value="Cimbali" ${v?.mod==='Cimbali'?'selected':''}>CIMBALI</option><option value="Melitta" ${v?.mod==='Melitta'?'selected':''}>MELITTA</option><option value="Otros" ${v?.mod==='Otros'?'selected':''}>OTROS</option>
                 </select>
                 <div class="flex gap-2 w-full sm:w-auto">
@@ -430,7 +502,7 @@
         const prev = document.getElementById('fotoPreview');
         if (!prev) return;
         prev.innerHTML = '';
-        processedImages.forEach(img => { const d = document.createElement('div'); d.className = "h-12 border-2 border-orange-500 rounded bg-cover bg-center"; d.style.backgroundImage = `url(${img})`; prev.appendChild(d); });
+        processedImages.forEach(img => { const d = document.createElement('div'); d.className = "h-12 foto-mini rounded bg-cover bg-center"; d.style.backgroundImage = `url(${img})`; prev.appendChild(d); });
     }
 
     document.getElementById('fotoInput').onchange = async (e) => {
