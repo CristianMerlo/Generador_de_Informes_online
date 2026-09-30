@@ -1,4 +1,4 @@
-const CACHE_NAME = 'mostaza-informes-v12-8';
+const CACHE_NAME = 'mostaza-informes-v12-9';
 const assets = ['./', 'index.html', 'manifest.json', 'img/logo.png'];
 
 // Instalación: Guardar archivos en caché y forzar activación inmediata
