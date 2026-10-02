@@ -9,7 +9,7 @@
 
     /* ============ Estado vivo ============ */
     var estado = {
-        local: null, geo: null, fotos: [], agua: window.Agua.inicial(),
+        tipo: 'presencial', local: null, geo: null, fotos: [], agua: window.Agua.inicial(),
         avisoQuota: false
     };
     var padT = null, padE = null;
@@ -351,6 +351,51 @@
         }));
     }
 
+    /* ============ Soporte Remoto (V13.11.0) ============ */
+    function leerRemotoDOM() {
+        return {
+            desc: $('r_desc').value, nombre: $('r_nombre').value, apellido: $('r_apellido').value,
+            canal: $('r_canal').value, canalOtro: $('r_canalOtro').value,
+            caracter: $('r_caracter').value, coordinada: $('r_coordinada').value,
+            hora: $('r_hora').value, duracion: $('r_duracion').value,
+            equipo: $('r_equipo').value, diag: $('r_diag').value, resultado: $('r_resultado').value
+        };
+    }
+    function refrescarCanal() {
+        var otro = $('r_canal').value === 'Aviso por persona';
+        $('boxRCanal').classList.toggle('oculto', !otro);
+    }
+    function aplicarTipo() {
+        var remoto = estado.tipo === 'remoto';
+        $('cuerpoRemoto').classList.toggle('oculto', !remoto);
+        document.querySelectorAll('.solo-presencial').forEach(function (el) { el.classList.toggle('oculto', remoto); });
+        refrescarCanal();
+    }
+    function montarCuerpoRemoto() {
+        var sel = function (id, arr) {
+            $(id).innerHTML = arr.map(function (o) {
+                var v = Array.isArray(o) ? o[0] : o, t = Array.isArray(o) ? o[1] : o;
+                return '<option value="' + v + '">' + t + '</option>';
+            }).join('');
+        };
+        sel('r_canal', CFG.remoto.canales);
+        sel('r_caracter', CFG.remoto.caracteres);
+        sel('r_coordinada', CFG.remoto.coordinadas);
+        sel('r_equipo', [['', '-- EQUIPO AFECTADO --']].concat(CFG.equipos.map(function (e) { return [e, e.toUpperCase()]; })));
+        $('r_duracion').innerHTML = '<option value="">-- DURACIÓN --</option>' + CFG.remoto.duraciones.map(function (h) {
+            return '<option value="' + h + '">' + h + ' hs' + (h === 1 ? ' (base, aunque haya sido menos)' : '') + '</option>';
+        }).join('');
+        $('r_canal').addEventListener('change', refrescarCanal);
+    }
+    function pintarRemoto(rem) {
+        if (!rem) return;
+        $('r_desc').value = rem.desc || ''; $('r_nombre').value = rem.nombre || ''; $('r_apellido').value = rem.apellido || '';
+        $('r_canal').value = rem.canal || ''; $('r_canalOtro').value = rem.canalOtro || '';
+        $('r_caracter').value = rem.caracter || ''; $('r_coordinada').value = rem.coordinada || '';
+        $('r_hora').value = rem.hora || ''; $('r_duracion').value = rem.duracion || '';
+        $('r_equipo').value = rem.equipo || ''; $('r_diag').value = rem.diag || ''; $('r_resultado').value = rem.resultado || '';
+    }
+
     /* ============ Borrador ============ */
     var tGuardado = null;
     function guardarBorrador() {
@@ -361,6 +406,8 @@
         pintarAgua();
         var d = {
             v: 13,
+            tipo: estado.tipo,
+            rem: leerRemotoDOM(),
             c: {
                 fe: $('fecha').value, tk: $('ticket').value, tec: $('tecnico').value,
                 cdt: ($('codTec') ? $('codTec').value : ''),
@@ -419,6 +466,7 @@
     function cargarBorrador() {
         var d = window.Almacen.leer(CFG.almacenamiento.claveBorrador);
         if (!d || d.v !== 13 || !d.c) return;
+        estado.tipo = d.tipo || 'presencial';
         $('fecha').value = d.c.fe || ''; $('ticket').value = d.c.tk || '';
         if (!TEC_FIX) $('tecnico').value = d.c.tec || ''; // con identidad fijada desde la app, el borrador no pisa al técnico
         if (CFG.usarCodigosTecnicos && d.c.cdt) { $('codTec').value = d.c.cdt; resolverCodigoTec(); }
@@ -438,6 +486,7 @@
         pintarFicha();
         if (Array.isArray(d.fotos)) { estado.fotos = d.fotos.slice(0, CFG.fotos.maxPorInforme); renderFotos(); $('fotoHelp').textContent = estado.fotos.length + '/' + CFG.fotos.maxPorInforme + ' fotos'; }
         if (d.equipos && d.equipos.length) { $('equiposGrid').innerHTML = ''; d.equipos.forEach(function (e) { addEquipo(e); }); }
+        if (d.rem) pintarRemoto(d.rem);
     }
 
     /* ============ Validaciones numéricas ============ */
@@ -460,7 +509,7 @@
     function registrarHistorial(est, nombre) {
         var h = window.Almacen.leer(CFG.almacenamiento.claveHistorial) || [];
         h.unshift({
-            codigo: est.codigo, local: est.local ? est.local.n : 'SIN LOCAL', fecha: est.fecha,
+            tipo: est.tipo, codigo: est.codigo, local: est.local ? est.local.n : 'SIN LOCAL', fecha: est.fecha,
             ticket: est.ticket, tecnico: est.tecnico, prioridad: est.prioridad,
             agua: est.agua.semaforo, equipos: (est.equipos || []).length, nombre: nombre,
             cuando: new Date().toISOString()
@@ -471,6 +520,7 @@
     /* ============ Generación del informe ============ */
     function leerEstadoCompleto() {
         var est = {
+            tipo: estado.tipo,
             fecha: $('fecha').value, ticket: $('ticket').value, tecnico: $('tecnico').value,
             codTec: ($('codTec') ? $('codTec').value : ''),
             labor: $('labor').value, traslado: $('traslado').value, prioridad: $('prioridad').value,
@@ -480,11 +530,18 @@
             agua: estado.agua, equipos: leerEquiposDOM()
         };
         est.agua.detalle = $('obsAgua').value;
+        if (estado.tipo === 'remoto') est.rem = leerRemotoDOM();
         return est;
     }
 
     function pedirConfirmacion() {
-        pisoLabor($('labor')); defaultTraslado($('traslado'));
+        var remoto = estado.tipo === 'remoto';
+        if (!remoto) { pisoLabor($('labor')); defaultTraslado($('traslado')); }
+        if (remoto) {
+            if (!$('r_desc').value.trim()) { alert('Describí la consulta / trabajo atendido.'); $('r_desc').focus(); return; }
+            if (!$('r_canal').value) { alert('Indicá la forma en que se recibió el pedido.'); $('r_canal').focus(); return; }
+            if (!$('r_resultado').value.trim()) { alert('Completá el resultado / conclusión de cómo queda el equipo.'); $('r_resultado').focus(); return; }
+        }
         if (!$('ticket').value.trim()) {
             alert('El Nº de Ticket es obligatorio para generar el informe.');
             $('ticket').focus();
@@ -503,6 +560,7 @@
         var faltantes = [];
         if (!estado.local) faltantes.push('Franquicia (buscá o cargá manualmente)');
         if (!$('fecha').value) faltantes.push('Fecha');
+        if (remoto && !$('r_equipo').value) faltantes.push('Equipo afectado');
         $('confirmFaltantes').innerHTML = faltantes.length
             ? '<p class="error">Faltan datos: ' + escapeHtml(faltantes.join(' · ')) + '</p>' : '';
         $('confirmCheck').checked = false;
@@ -510,18 +568,23 @@
     }
 
     function confirmarYGenerar() {
+        var remoto = estado.tipo === 'remoto';
         var est = leerEstadoCompleto();
         if (!est.local) { alert('Seleccioná o cargá la franquicia antes de generar.'); return; }
         if (!String(est.ticket || '').trim()) {
             alert('El Nº de Ticket es obligatorio.'); ocultarModal('modalConfirm'); $('ticket').focus(); return;
         }
-        if (!$('confirmCheck').checked) {
+        if (remoto && !est.rem.equipo) {
+            alert('Falta el Equipo afectado.'); return;
+        }
+        if (!remoto && !$('confirmCheck').checked) {
             $('confirmError').textContent = 'Confirmá que todos los equipos fueron revisados antes de generar.';
             return;
         }
         ocultarModal('modalConfirm');
-        // persistir firmas ANTES de generar (van como blobs al PDF)
-        Promise.all([persistirFirma('T'), persistirFirma('E')]).then(function () {
+        // el remoto no lleva firmas; el presencial persiste los pads antes de generar
+        var previo = remoto ? Promise.resolve() : Promise.all([persistirFirma('T'), persistirFirma('E')]);
+        previo.then(function () {
             return window.InformePDF.generar(est);
         }).then(function (res) {
             var blob = res.doc.output('blob');
@@ -777,8 +840,11 @@
 
     function init2() {
         window.Almacen.iniciar();
+        montarCuerpoRemoto();
         cargarBorrador();
+        var hoy = fechaLocal();
         if (!$('fecha').value) $('fecha').value = hoy;
+        aplicarTipo();
         if (document.querySelectorAll('.equipo-item').length === 0) addEquipo();
 
         // pads de firma
@@ -808,6 +874,17 @@
          'obsPrevias', 'obsFinales', 'nombreEncargado'].forEach(function (id) {
             $(id).addEventListener('input', guardarBorrador);
             $(id).addEventListener('change', guardarBorrador);
+        });
+        ['r_desc', 'r_nombre', 'r_apellido', 'r_canalOtro', 'r_diag', 'r_resultado'].forEach(function (id) {
+            $(id).addEventListener('input', guardarBorrador);
+        });
+        ['r_caracter', 'r_coordinada', 'r_hora', 'r_duracion', 'r_equipo'].forEach(function (id) {
+            $(id).addEventListener('change', guardarBorrador);
+        });
+        $('r_canal').addEventListener('change', guardarBorrador);
+        $('tipoInforme').value = estado.tipo;
+        $('tipoInforme').addEventListener('change', function () {
+            estado.tipo = this.value; aplicarTipo(); guardarBorrador();
         });
         $('labor').addEventListener('keydown', soloDigitos);
         $('traslado').addEventListener('keydown', soloDigitos);

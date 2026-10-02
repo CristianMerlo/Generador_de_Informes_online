@@ -8,7 +8,7 @@
 
     <!-- Única constante de versión: de acá salen el ?v= de TODOS los assets y el pie.
         Actualizar este número es la única forma de forzar caché nueva (sin reinstalar). -->
-    <script>window.MTZ_VERSION = '13.10.3';</script>
+    <script>window.MTZ_VERSION = '13.11.1';</script>
 
     <!-- CSS crítico anti-FOUC: barra de marca instantánea + revelado con fallback por timeout. -->
     <style>
@@ -91,6 +91,18 @@
 <main>
     <form id="mainForm" onsubmit="return false">
 
+        <!-- 0 · TIPO DE INFORME (presencial / soporte remoto) -->
+        <section class="card card--tipo">
+            <div class="grid">
+                <div class="c6"><label>Tipo de informe</label>
+                    <select id="tipoInforme">
+                        <option value="presencial">PRESENCIAL — visita técnica al local</option>
+                        <option value="remoto">SOPORTE REMOTO — asistencia a distancia</option>
+                    </select>
+                </div>
+            </div>
+        </section>
+
         <!-- 1 · DATOS DE LA INTERVENCIÓN -->
         <section class="card">
             <h3>1 · Datos de la Intervención</h3>
@@ -106,20 +118,46 @@
                 </div>
 
                 <div class="c6" id="campoTecnico"><label>Técnico Responsable</label><select id="tecnico"></select></div>
-                <div class="c3"><label>Tiempo de Labor (hs)</label><input type="number" id="labor" min="2" step="1" placeholder="2 hs"></div>
-                <div class="c3"><label>Tiempo de Traslado (hs)</label><input type="number" id="traslado" min="0" step="1" placeholder="0 hs"></div>
-                <div class="c6"><label>Prioridad / Tipo de Servicio</label><select id="prioridad"></select></div>
+                <div class="c3 solo-presencial"><label>Tiempo de Labor (hs)</label><input type="number" id="labor" min="2" step="1" placeholder="2 hs"></div>
+                <div class="c3 solo-presencial"><label>Tiempo de Traslado (hs)</label><input type="number" id="traslado" min="0" step="1" placeholder="0 hs"></div>
+                <div class="c6 solo-presencial"><label>Prioridad / Tipo de Servicio</label><select id="prioridad"></select></div>
                 <div class="c6"><label>Código de Informe Único</label><input type="text" id="codigo_informe" readonly></div>
 
-                <div class="c6" style="display:flex;gap:8px;align-items:center;flex-wrap:wrap">
+                <div class="c6 solo-presencial" style="display:flex;gap:8px;align-items:center;flex-wrap:wrap">
                     <button type="button" id="btnGeo" class="btn btn-mini"><svg class="ic"><use href="#ic-pin"/></svg> Marcar ubicación</button>
                     <span id="geoLabel" class="nota"></span>
                 </div>
             </div>
         </section>
 
+        <!-- 1b · CUERPO SOPORTE REMOTO (se muestra solo al elegir "Soporte Remoto") -->
+        <section class="card oculto" id="cuerpoRemoto">
+            <h3>Asistencia Remota</h3>
+            <div class="grid">
+                <div class="c6"><label>Descripción de la consulta / trabajo <span style="color:var(--c-marca)">*</span></label>
+                    <textarea id="r_desc" rows="3" placeholder="Qué consultó o reportó el local..."></textarea></div>
+
+                <div class="c3"><label>Persona de contacto — Nombre</label><input type="text" id="r_nombre" autocomplete="off"></div>
+                <div class="c3"><label>Persona de contacto — Apellido</label><input type="text" id="r_apellido" autocomplete="off"></div>
+
+                <div class="c3"><label>Forma de recepción <span style="color:var(--c-marca)">*</span></label><select id="r_canal"></select></div>
+                <div class="c3 oculto" id="boxRCanal"><label>¿Quién avisó?</label><input type="text" id="r_canalOtro" placeholder="Nombre de quien avisó"></div>
+
+                <div class="c3"><label>Carácter</label><select id="r_caracter"></select></div>
+                <div class="c3"><label>¿Coordinada?</label><select id="r_coordinada"></select></div>
+
+                <div class="c3"><label>Horario de la atención</label><input type="time" id="r_hora"></div>
+                <div class="c3"><label>Duración (bloques de 1 hs)</label><select id="r_duracion"></select></div>
+
+                <div class="c6"><label>Equipo afectado</label><select id="r_equipo"></select></div>
+
+                <div class="c6"><label>Diagnóstico</label><textarea id="r_diag" rows="2" placeholder="Qué se identificó..."></textarea></div>
+                <div class="c6"><label>Resultado / conclusión (cómo queda el equipo) <span style="color:var(--c-marca)">*</span></label><textarea id="r_resultado" rows="2" placeholder="Resolución y estado final..."></textarea></div>
+            </div>
+        </section>
+
         <!-- 2 · CALIDAD DE AGUA -->
-        <section class="card card--agua">
+        <section class="card card--agua solo-presencial">
             <h3>2 · Calidad de Agua <span id="aguaChip" class="semaforo-chip chip--gris" style="float:right"><span class="chip-led"></span>SIN MEDIR</span></h3>
             <div class="grid">
                 <div class="c4"><label>PPM Post-Filtrado</label><input type="number" id="ppm" inputmode="numeric" min="0" max="9999" placeholder="ej. 95"></div>
@@ -138,17 +176,19 @@
         </section>
 
         <!-- 3 · OBSERVACIONES INICIALES -->
-        <section class="card card--arribo">
+        <section class="card card--arribo solo-presencial">
             <h3>3 · Observaciones Iniciales (Arribo)</h3>
             <textarea id="obsPrevias" rows="2" placeholder="Estado previo..."></textarea>
         </section>
 
         <!-- 4 · EQUIPOS -->
-        <div id="equiposGrid"></div>
-        <button type="button" id="btnAddEquipo" class="btn btn--bloque" style="margin-bottom:16px;border-style:dashed"><svg class="ic"><use href="#ic-plus"/></svg> Añadir Equipo</button>
+        <div id="zonaEquipos" class="solo-presencial">
+            <div id="equiposGrid"></div>
+            <button type="button" id="btnAddEquipo" class="btn btn--bloque" style="margin-bottom:16px;border-style:dashed"><svg class="ic"><use href="#ic-plus"/></svg> Añadir Equipo</button>
+        </div>
 
         <!-- 5 · FOTOS -->
-        <section class="card">
+        <section class="card solo-presencial">
             <h3>5 · Registro Fotográfico</h3>
             <div style="display:flex;flex-wrap:wrap;align-items:center;gap:8px">
                 <input type="file" id="fotoInput" accept="image/*" capture="environment" multiple style="width:auto;min-height:0;font-size:12px">
@@ -159,13 +199,13 @@
         </section>
 
         <!-- 6 · RECOMENDACIONES -->
-        <section class="card card--fin">
+        <section class="card card--fin solo-presencial">
             <h3>6 · Recomendaciones Finales</h3>
             <textarea id="obsFinales" rows="3" placeholder="Sugerencias finales..."></textarea>
         </section>
 
         <!-- FIRMAS -->
-        <section class="card">
+        <section class="card solo-presencial">
             <div class="firmas-grid">
                 <div class="firma-col">
                     <label>Firma Técnico</label>
@@ -212,7 +252,7 @@
     <div class="modal__caja">
         <h3 class="modal__titulo">Confirmar antes de generar</h3>
         <div id="confirmFaltantes"></div>
-        <label class="check-fila" style="margin-top:10px">
+        <label class="check-fila solo-presencial" id="confirmFila">
             <input type="checkbox" id="confirmCheck">
             Confirmo que <b>todos los equipos fueron revisados</b> y que las fotos, firmas y observaciones están completas.
         </label>

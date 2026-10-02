@@ -42,7 +42,7 @@ window.InformePDF = (function () {
     function cargarTodo(estado) {
         var pLogo = fetch('img/logo.png?v=' + window.MTZ_VERSION).then(function (r) { return r.ok ? r.blob() : null; })
             .then(function (b) { return b ? blobADataURL(b) : null; }).catch(function () { return null; });
-        var pFotos = estado.fotos.reduce(function (prom, f) {
+        var pFotos = (estado.fotos || []).reduce(function (prom, f) {
             return prom.then(function (mapa) {
                 return window.Almacen.leerBinario(f.id).then(function (reg) {
                     if (!reg || !reg.blob) return mapa;
@@ -260,11 +260,138 @@ window.InformePDF = (function () {
         return doc;
     }
 
+    /* ---------- Informe de SOPORTE / ASISTENCIA REMOTA (V13.11.0) ----------
+       Mismo branding y helpers que el presencial, pero cuerpo propio: sin agua,
+       sin equipos detallados, sin fotos ni firmas. Reitera la identificación del
+       local y agrega recepción / diagnóstico / conclusión. */
+    function construirRemoto(estado, bin) {
+        var ctor = (window.jspdf && window.jspdf.jsPDF) || window.jsPDF;
+        if (!ctor) throw new Error('jsPDF no está cargado');
+        var doc = new ctor({ unit: 'mm', format: 'a4' });
+        var W = 210, H = 297, mx = 14, y = 0, pag = 1;
+        var cM = rgbDe('marca'), cMO = rgbDe('rojo'), cTinta = rgbDe('tinta'), cLabel = rgbDe('label');
+        var L = estado.local || {};
+        var r = estado.rem || {};
+
+        function pie() {
+            doc.setFontSize(7); doc.setTextColor(150, 150, 150);
+            doc.text(window.CONFIG.pieCorporativo, W / 2, H - 8, { align: 'center' });
+            doc.text('Página ' + pag, W - mx, H - 8, { align: 'right' });
+        }
+        function logoCirculo() {
+            doc.setFillColor(cMO[0], cMO[1], cMO[2]); doc.circle(mx + 7, 15, 6, 'F');
+            doc.setTextColor(255, 255, 255); doc.setFont('helvetica', 'bold'); doc.setFontSize(13);
+            doc.text('M', mx + 7, 17.5, { align: 'center' });
+        }
+        function encabezado() {
+            if (bin.logo) { try { doc.addImage(bin.logo, 'PNG', mx, 8, 14, 14); } catch (e) { logoCirculo(); } }
+            else logoCirculo();
+            doc.setTextColor(cTinta[0], cTinta[1], cTinta[2]);
+            doc.setFont('helvetica', 'bold'); doc.setFontSize(13);
+            doc.text('INFORME TÉCNICO · SOPORTE REMOTO', W / 2 + 6, 16, { align: 'center' });
+            doc.setFontSize(7.5); doc.setTextColor(cLabel[0], cLabel[1], cLabel[2]); doc.setFont('helvetica', 'normal');
+            doc.text(estado.fecha || fechaLargaCorta(), W - mx, 12, { align: 'right' });
+            doc.setFont('helvetica', 'bold'); doc.setTextColor(cM[0], cM[1], cM[2]); doc.setFontSize(8);
+            doc.text(estado.codigo || 'S/D', W - mx, 16.5, { align: 'right' });
+            doc.setDrawColor(cM[0], cM[1], cM[2]); doc.setLineWidth(1); doc.line(mx, 26, W - mx, 26);
+            doc.setLineWidth(0.2); doc.setTextColor(0, 0, 0); y = 33;
+        }
+        function nuevaPagina() { pie(); doc.addPage(); pag++; encabezado(); }
+        function espacio(alto) { if (y + alto > H - 16) nuevaPagina(); }
+        function titulo(txt) {
+            espacio(12); doc.setFont('helvetica', 'bold'); doc.setFontSize(11);
+            doc.setTextColor(cTinta[0], cTinta[1], cTinta[2]); doc.text(txt.toUpperCase(), mx, y); y += 5;
+            doc.setDrawColor(220, 220, 220); doc.setLineWidth(0.3); doc.line(mx, y, W - mx, y); y += 4.5;
+        }
+        function dato(k, val) {
+            espacio(6); doc.setFont('helvetica', 'bold'); doc.setFontSize(9);
+            doc.setTextColor(cLabel[0], cLabel[1], cLabel[2]); doc.text(k + ':', mx, y);
+            doc.setFont('helvetica', 'normal'); doc.setTextColor(30, 30, 30);
+            var lines = doc.splitTextToSize(String(val == null || val === '' ? '—' : val), W - mx * 2 - 42);
+            doc.text(lines, mx + 42, y); y += Math.max(5, lines.length * 4.6);
+        }
+        function parrafo(txt, size) {
+            doc.setFont('helvetica', 'normal'); doc.setFontSize(size || 9); doc.setTextColor(50, 50, 50);
+            var lines = doc.splitTextToSize(String(txt == null ? '' : txt), W - mx * 2);
+            lines.forEach(function (ln) { espacio(5); doc.text(ln, mx, y); y += 4.6; });
+        }
+
+        var contacto = [r.nombre, r.apellido].filter(function (x) { return x && String(x).trim(); }).join(', ');
+        var canalTxt = r.canal || 'S/D';
+        if (r.canal === 'Aviso por persona' && r.canalOtro) canalTxt += ' — avisó: ' + r.canalOtro;
+        var durTxt = r.duracion ? (r.duracion + ' hs (bloque de 1 hs)') : 'S/D';
+
+        encabezado();
+        titulo('1 · Datos de la asistencia');
+        var siglas = [L.s && ('sis. ' + L.s), L.t && ('tic. ' + L.t)].filter(Boolean).join(' / ');
+        dato('Franquicia', L.n + (siglas ? '  (' + siglas + ')' : '') + (L.manual ? ' [carga manual]' : ''));
+        var dir = [L.dir, L.cd, L.pr].filter(Boolean).join(' — ');
+        if (dir) dato('Dirección', dir);
+        if (L.rs) dato('Razón social', L.rs);
+        dato('Fecha', estado.fecha || 'S/D');
+        dato('Ticket N°', estado.ticket);
+        dato('Técnico responsable', estado.tecnico + (estado.codTec ? ' — código ' + estado.codTec : ''));
+        dato('Equipo afectado', r.equipo);
+        y += 2;
+
+        titulo('2 · Recepción del pedido');
+        dato('Forma de recepción', canalTxt);
+        dato('Persona de contacto', contacto || 'S/D');
+        dato('Carácter', r.caracter);
+        dato('Coordinación', r.coordinada);
+        dato('Horario de la atención', r.hora || 'S/D');
+        dato('Duración', durTxt);
+        y += 2;
+
+        titulo('3 · Descripción de la consulta / trabajo');
+        parrafo(r.desc || 'Sin descripción.', 9); y += 3;
+
+        titulo('4 · Diagnóstico');
+        parrafo(r.diag || 'Sin diagnóstico registrado.', 9); y += 3;
+
+        titulo('5 · Resultado / conclusión (cómo queda el equipo)');
+        parrafo(r.resultado || 'Sin conclusión registrada.', 9); y += 4;
+
+        /* ---------- Resumen para gerencia ---------- */
+        doc.addPage(); pag++;
+        if (bin.logo) { try { doc.addImage(bin.logo, 'PNG', mx, 8, 14, 14); } catch (e) { logoCirculo(); } } else logoCirculo();
+        doc.setFont('helvetica', 'bold'); doc.setTextColor(cTinta[0], cTinta[1], cTinta[2]); doc.setFontSize(13);
+        doc.text('RESUMEN DE ASISTENCIA REMOTA', W / 2 + 6, 17, { align: 'center' });
+        doc.setFillColor(cM[0], cM[1], cM[2]); doc.rect(mx, 26, W - mx * 2, 9, 'F');
+        doc.setTextColor(255, 255, 255); doc.setFontSize(10);
+        doc.text((L.n || 'SIN LOCAL') + '   ·   ' + (estado.fecha || fechaLargaCorta()), W / 2, 31.8, { align: 'center' });
+        y = 42;
+        doc.setTextColor(0, 0, 0); doc.setFont('helvetica', 'bold'); doc.setFontSize(9);
+        doc.text('DATOS DE CONTROL', mx, y); y += 5;
+        doc.setFont('helvetica', 'normal');
+        doc.text('Ticket: ' + (estado.ticket || 'S/D') + '   ·   Carácter: ' + (r.caracter || 'S/D') +
+                 '   ·   Técnico: ' + (estado.tecnico || 'S/D') + (estado.codTec ? ' (' + estado.codTec + ')' : ''), mx, y); y += 4.5;
+        doc.text('Código: ' + (estado.codigo || 'S/D') + '   ·   Equipo: ' + (r.equipo || 'S/D') + '   ·   Duración: ' + durTxt, mx, y); y += 4.5;
+        doc.text('Recepción: ' + canalTxt + '   ·   Contacto: ' + (contacto || 'S/D') + '   ·   ' + (r.coordinada || 'S/D'), mx, y); y += 4.5;
+        if (r.hora) { doc.text('Horario de la atención: ' + r.hora, mx, y); y += 4.5; }
+        if (L.dir) { doc.text('Dirección: ' + [L.dir, L.cd, L.pr].filter(Boolean).join(', '), mx, y); y += 4.5; }
+        var respons = [];
+        if (L.sup) respons.push('Supervisor: ' + L.sup);
+        if (L.reg) respons.push('Regional: ' + L.reg);
+        if (L.co) respons.push('Coordinador: ' + L.co);
+        if (respons.length) {
+            var rt = doc.splitTextToSize(respons.join('   ·   '), W - mx * 2);
+            doc.text(rt, mx, y); y += rt.length * 4.5 + 2;
+        }
+        y += 4;
+        doc.setFont('helvetica', 'bold'); doc.text('CONCLUSIÓN PARA GERENCIA', mx, y); y += 5;
+        doc.setFont('helvetica', 'normal'); doc.setFontSize(9);
+        var conc = doc.splitTextToSize(r.resultado || 'Sin conclusión registrada.', W - mx * 2);
+        doc.text(conc, mx, y); y += conc.length * 4.6 + 4;
+        pie();
+        return doc;
+    }
+
     /* Genera el informe completo. Devuelve Promise<{doc, nombre}> */
     function generar(estado) {
         if (!window.jspdf || !window.jspdf.jsPDF) return Promise.reject(new Error('No se pudo cargar la librería de PDF'));
         return cargarTodo(estado).then(function (bin) {
-            var doc = construir(estado, bin);
+            var doc = (estado.tipo === 'remoto') ? construirRemoto(estado, bin) : construir(estado, bin);
             var L = estado.local || {};
             var base = (L.t || L.s || 'Rep').replace(/[^A-Za-z0-9]/g, '');
             var nombre = 'MTZ_' + base + '_' + (estado.fecha || new Date().toISOString().slice(0, 10)) + '.pdf';

@@ -52,6 +52,31 @@ window.CONFIG = (function () {
 
         labor: { minimo: 2 },
 
+        // ---- Módulo de Soporte / Asistencia Remota (V13.11.0) ----
+        // Comparte la identificación (local/ticket/fecha/técnico/código) con el informe
+        // presencial, pero cambia por completo el cuerpo: sin agua, equipos detallados,
+        // fotos ni firmas. El equipo afectado reusa la misma lista CFG.equipos.
+        remoto: {
+            canales: [
+                ['', '-- FORMA DE RECEPCIÓN --'],
+                ['Telefono', 'TELÉFONO'],
+                ['Llamado', 'LLAMADO'],
+                ['Ticket', 'TICKET'],
+                ['Mail', 'MAIL'],
+                ['Aviso por persona', 'AVISO POR X PERSONA']
+            ],
+            caracteres: [
+                ['', '-- CARÁCTER --'],
+                ['Consulta', 'CONSULTA'],
+                ['Diagnostico', 'DIAGNÓSTICO'],
+                ['Emergencia', 'EMERGENCIA']
+            ],
+            coordinadas: [['No coordinada', 'NO COORDINADA (ESPONTÁNEA)'], ['Programada', 'PROGRAMADA / COORDINADA']],
+            // Bloques discretos de 1 hora (sin minutos): se toma 1 hs base aunque haya
+            // sido menos; si pasa la hora, 2 hs, y así consecuentemente.
+            duraciones: [1, 2, 3, 4, 5, 6, 8, 10, 12]
+        },
+
         // Cortes PPM del mantenimiento (NO tocar): 1-49 blanda, 50-119 óptimo, 120-300 alerta, >300 dura
         ppm: { cortes: [50, 120, 300], min: 0, max: 9999 },
 
