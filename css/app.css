@@ -1,0 +1,246 @@
+/* ============================================================
+   Generador de Informes — Sistema de diseño V13
+   Paleta única de marca (rojo Mostaza). El PDF lee estas vars (js/pdf.js).
+   Tipografías locales con fallback de sistema (funciona en modo avión).
+   ============================================================ */
+:root {
+    --c-marca: #D32F2F; --c-marca-oscuro: #B71C1C; --c-tinta: #1A1A1B;
+    --c-fondo: #F4F7F6; --c-superficie: #ffffff; --c-borde: #e2e5e4;
+    --c-borde-input: #9ca3af; --c-label: #6b7280; --c-texto: #333333;
+    --c-verde: #16a34a; --c-amarillo: #eab308; --c-naranja: #F58220;
+    --c-rojo: #c80000; --c-sin-medir: #6b7280; --c-azul: #1d4ed8;
+    --radio: 12px; --sombra: 0 2px 8px rgba(0,0,0,.08);
+    --alto-cabecera: 60px;
+    --fuente-titulo: "Montserrat","Roboto",-apple-system,"Segoe UI",sans-serif;
+    --fuente-cuerpo: "Roboto",-apple-system,"Segoe UI",Roboto,sans-serif;
+}
+* { box-sizing: border-box; }
+html { background: var(--c-fondo); }
+body {
+    margin: 0; padding: 0; background: var(--c-fondo); color: var(--c-texto);
+    font-family: var(--fuente-cuerpo); font-size: 16px; line-height: 1.45;
+    -webkit-text-size-adjust: 100%; -webkit-tap-highlight-color: transparent;
+    padding-bottom: 40px;
+}
+
+/* ---------- Cabecera de marca ---------- */
+.app-header {
+    position: sticky; top: 0; z-index: 50;
+    background: linear-gradient(135deg, var(--c-marca) 0%, var(--c-marca-oscuro) 100%);
+    color: #fff; padding: 10px 14px; display: flex; justify-content: space-between;
+    align-items: center; gap: 10px; box-shadow: var(--sombra);
+}
+.header-izq { display: flex; align-items: center; gap: 10px; min-width: 0; }
+.app-header h1 {
+    margin: 0; font-family: var(--fuente-titulo); font-size: 13px; font-weight: 800;
+    text-transform: uppercase; letter-spacing: .3px; white-space: nowrap;
+    overflow: hidden; text-overflow: ellipsis;
+}
+.app-header h1 .sub { font-size: 11px; font-weight: 600; opacity: .9; }
+.logo-caja {
+    flex: 0 0 auto; width: 40px; height: 40px; border-radius: 10px; background: #fff;
+    box-shadow: var(--sombra); display: flex; align-items: center; justify-content: center; overflow: hidden;
+}
+.logo-img { width: 100%; height: 100%; object-fit: contain; padding: 3px; }
+.logo-caja--fallback { color: var(--c-marca); font-weight: 900; font-size: 22px; }
+
+/* LED de estado global */
+#statusLed {
+    flex: 0 0 auto; width: 18px; height: 18px; border-radius: 50%;
+    border: 2px solid #fff; box-shadow: 0 0 0 1px rgba(0,0,0,.08); background: var(--c-sin-medir);
+}
+#statusLed.rojo { background: var(--c-rojo); animation: pulse 1.4s infinite; }
+#statusLed.amarillo { background: var(--c-amarillo); }
+#statusLed.verde { background: var(--c-verde); }
+@keyframes pulse { 50% { opacity: .45; } }
+
+/* ---------- Layout ---------- */
+main { max-width: 640px; margin: 0 auto; padding: 12px 10px; }
+
+/* ---------- Tarjetas ---------- */
+.card {
+    background: var(--c-superficie); border: 1px solid var(--c-borde);
+    border-left: 5px solid var(--c-marca); border-radius: var(--radio);
+    padding: 14px; margin-bottom: 14px; box-shadow: var(--sombra);
+    animation: fadein .18s ease-out;
+}
+.card--agua { border-left-color: var(--c-azul); }
+.card--arribo { border-left-color: #8b5cf6; }
+.card--fin { border-left-color: var(--c-verde); }
+@keyframes fadein { from { opacity: 0; transform: translateY(4px); } to { opacity: 1; transform: none; } }
+@media (prefers-reduced-motion: reduce) { .card, .equipo-item { animation: none; } }
+
+.card h3 {
+    margin: 0 0 10px; font-family: var(--fuente-titulo); font-size: 12px; font-weight: 900;
+    text-transform: uppercase; letter-spacing: .5px; color: var(--c-label);
+    border-bottom: 1px solid var(--c-borde); padding-bottom: 6px;
+}
+.card--agua h3 { color: var(--c-azul); }
+.card--arribo h3 { color: #7c3aed; }
+.card--fin h3 { color: var(--c-verde); }
+
+/* ---------- Formularios ---------- */
+label {
+    font-size: 10px; font-weight: 900; text-transform: uppercase; letter-spacing: .6px;
+    color: var(--c-label); display: block; margin-bottom: 3px;
+}
+input, select, textarea {
+    width: 100%; border: 2px solid var(--c-borde-input); border-radius: var(--radio);
+    padding: 10px; font-size: 15px; font-family: inherit; background: #fff; color: #000;
+    min-height: 44px;
+}
+input:focus, select:focus, textarea:focus { outline: 3px solid var(--c-marca); outline-offset: 1px; }
+input[readonly] { background: #f3f4f6; color: #374151; }
+input:disabled { opacity: .55; }
+textarea { resize: vertical; min-height: 56px; }
+.grid { display: grid; grid-template-columns: repeat(6, 1fr); gap: 8px; }
+
+/* ---------- Código personal de técnico ---------- */
+.input-codtec { letter-spacing: .6em; font-weight: 900; font-size: 20px; text-align: center; }
+.tec-resuelto { font-size: 13px; font-weight: 800; min-height: 20px; margin-top: 4px; color: #6b7280; }
+.tec-resuelto.ok { color: #15803d; }
+.tec-resuelto.mal { color: var(--c-rojo); }
+.tec-resuelto .ic { vertical-align: -2px; }
+.c2 { grid-column: span 2; } .c3 { grid-column: span 3; }
+.c4 { grid-column: span 4; } .c6 { grid-column: span 6; }
+@media (max-width: 480px) { .c2, .c3, .c4 { grid-column: span 6; } }
+
+/* ---------- Botones ---------- */
+.btn {
+    min-height: 46px; padding: 10px 14px; border: 2px solid var(--c-borde-input);
+    border-radius: var(--radio); background: var(--c-superficie); color: var(--c-texto);
+    font-size: 14px; font-weight: 700; font-family: inherit; cursor: pointer;
+    touch-action: manipulation; transition: transform .15s cubic-bezier(.175,.885,.32,1.275), box-shadow .15s;
+}
+.btn:active { transform: scale(.98); }
+.btn:disabled { opacity: .45; cursor: default; }
+.btn--bloque { display: block; width: 100%; margin-top: 8px; }
+.btn-principal {
+    background: var(--c-marca); border: none; border-bottom: 4px solid var(--c-marca-oscuro);
+    color: #fff; width: 100%; padding: 16px; font-size: 18px; font-weight: 900;
+    text-transform: uppercase; border-radius: var(--radio); cursor: pointer;
+    font-family: var(--fuente-titulo); box-shadow: var(--sombra);
+}
+.btn-principal:active { transform: translateY(2px); border-bottom-width: 2px; }
+.btn-peligro { background: var(--c-rojo); border: none; color: #fff; padding: 8px 10px; border-radius: 8px; font-size: 10px; font-weight: 800; text-transform: uppercase; cursor: pointer; }
+.btn-mini { padding: 6px 10px; min-height: 36px; font-size: 12px; }
+.btn-azul { background: var(--c-azul); border-color: var(--c-azul); color: #fff; }
+.btn--ok { background: var(--c-verde); border-color: var(--c-verde); color: #fff; }
+
+/* ---------- Buscador de franquicia ---------- */
+.busq-resultados { display: flex; flex-direction: column; gap: 6px; margin-top: 8px; }
+.busq-opcion {
+    text-align: left; padding: 10px 12px; border: 2px solid var(--c-borde);
+    border-left: 5px solid var(--c-marca); border-radius: var(--radio); background: #fff;
+    cursor: pointer; font-family: inherit; min-height: 48px;
+}
+.busq-opcion .n { display: block; font-size: 15px; font-weight: 800; color: var(--c-tinta); }
+.busq-opcion .d { display: block; margin-top: 2px; font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: .4px; color: var(--c-label); }
+.ficha-local {
+    margin-top: 10px; padding: 10px 12px; border-radius: var(--radio); background: #f0fdf4;
+    border: 1px solid #bbf7d0; font-size: 12px; color: #14532d;
+}
+.ficha-local b { font-size: 14px; display: block; margin-bottom: 2px; color: var(--c-tinta); }
+
+/* ---------- Semáforos ---------- */
+.semaforo-chip {
+    display: inline-flex; align-items: center; gap: 6px; padding: 4px 10px;
+    border-radius: 999px; font-size: 11px; font-weight: 900; text-transform: uppercase;
+    border: 2px solid var(--c-borde); background: #fff; color: var(--c-tinta);
+}
+.chip-led { width: 12px; height: 12px; border-radius: 50%; background: var(--c-sin-medir); }
+.chip--verde .chip-led { background: var(--c-verde); }
+.chip--amarillo .chip-led { background: var(--c-amarillo); }
+.chip--naranja .chip-led { background: var(--c-naranja); }
+.chip--rojo .chip-led { background: var(--c-rojo); }
+.chip--gris .chip-led { background: var(--c-sin-medir); }
+.agua-por-que { font-size: 11px; color: var(--c-label); margin: 8px 0 0; }
+
+/* ---------- Equipos ---------- */
+.equipo-item { border-left-color: #8b5cf6; }
+.equipo-cab { display: flex; flex-wrap: wrap; justify-content: space-between; align-items: flex-end; gap: 8px; margin-bottom: 8px; }
+.equipo-cab select { flex: 1 1 50%; min-width: 140px; font-weight: 800; color: var(--c-marca); }
+.equipo-campos { display: flex; gap: 8px; }
+.equipo-campos label { font-size: 8px; }
+.equipo-campos input { width: 90px; text-align: right; font-size: 13px; }
+.equipo-campos input.shots { font-weight: 900; color: var(--c-azul); }
+.eq-x { background: none; border: none; color: var(--c-rojo); font-size: 22px; font-weight: 900; cursor: pointer; padding: 0 6px; align-self: center; }
+.sub-bloque { border-radius: var(--radio); padding: 8px 10px; margin-top: 8px; }
+.sub-bloque.higiene { background: #f9fafb; }
+.sub-bloque.stock { background: #eff6ff; }
+.sub-bloque h4 { margin: 0 0 6px; font-size: 11px; font-weight: 900; text-transform: uppercase; color: #1e3a8a; }
+.sub-bloque.higiene h4 { color: #374151; }
+.sub-bloque .grid3 { display: grid; grid-template-columns: repeat(2, 1fr); gap: 6px; }
+.sub-bloque.stock .grid3 { grid-template-columns: repeat(3, 1fr); }
+.sub-bloque select { font-size: 12px; font-weight: 700; min-height: 40px; padding: 6px; }
+
+/* Etiquetas de tareas */
+.tareas { display: flex; flex-wrap: wrap; gap: 6px; margin: 8px 0; }
+.tag-btn {
+    background: #e5e7eb; border: 1px solid var(--c-borde-input); padding: 7px 10px;
+    border-radius: 8px; font-size: 11px; font-weight: 700; cursor: pointer; user-select: none;
+}
+.tag-btn:active { background: var(--c-marca); color: #fff; }
+
+/* ---------- Fotos ---------- */
+.foto-fila { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 8px; }
+.foto-mini { position: relative; width: 84px; height: 84px; border-radius: 8px; border: 2px solid var(--c-marca); overflow: hidden; background: #eee; }
+.foto-mini img { width: 100%; height: 100%; object-fit: cover; display: block; }
+.foto-quitar {
+    position: absolute; top: 2px; right: 2px; width: 26px; height: 26px; border-radius: 50%;
+    background: rgba(0,0,0,.65); color: #fff; border: none; font-size: 14px; font-weight: 900; cursor: pointer; line-height: 1;
+}
+.aviso-foto { font-size: 11px; color: var(--c-rojo); font-weight: 700; margin: 6px 0 0; }
+
+/* ---------- Firmas ---------- */
+.signature-box { border: 2px solid var(--c-tinta); background: #fff; border-radius: var(--radio); position: relative; touch-action: none; }
+.signature-box canvas { display: block; width: 100%; height: 150px; }
+.lock-btn {
+    position: absolute; top: 5px; right: 5px; z-index: 10; background: #eee; padding: 6px 8px;
+    border-radius: 8px; border: 1px solid #ccc; font-size: 13px; cursor: pointer;
+}
+.locked { background: #fee2e2 !important; opacity: .85; }
+/* Iconos SVG propios (sprite en index.html): acompañan texto de botones sin librerías */
+.ic { width: 1.05em; height: 1.05em; stroke: currentColor; fill: none; stroke-width: 2;
+      stroke-linecap: round; stroke-linejoin: round; vertical-align: -.18em; margin-right: .3em; }
+.lock-btn .ic { width: 15px; height: 15px; margin: 0; display: block; }
+/* Etiquetas de estado del local en la ficha (PROPIO / DATOS POR ASIGNAR) */
+.chip-badge { display: inline-block; margin-left: 6px; padding: 1px 7px; border-radius: 999px;
+    font-size: 9px; font-weight: 900; letter-spacing: .04em; vertical-align: 2px;
+    background: #eceff1; color: #546e7a; border: 1px solid #cfd8dc; }
+.chip-badge--aviso { background: #fff7e6; color: #b45309; border-color: #fcd34d; }
+.firma-col { text-align: center; }
+.firma-col .limpiar { font-size: 10px; text-decoration: underline; background: none; border: none; color: var(--c-label); cursor: pointer; margin-top: 6px; text-transform: uppercase; font-weight: 700; }
+.firmas-grid { display: grid; grid-template-columns: 1fr; gap: 18px; }
+
+/* ---------- Modal ---------- */
+.modal { position: fixed; inset: 0; z-index: 80; background: rgba(0,0,0,.55); display: flex; align-items: flex-end; justify-content: center; padding: 12px; }
+.modal--oculto { display: none; }
+.modal__caja {
+    width: 100%; max-width: 560px; max-height: 90vh; overflow-y: auto; background: var(--c-superficie);
+    border-radius: var(--radio); border-top: 5px solid var(--c-marca); padding: 16px; box-shadow: var(--sombra);
+}
+.modal__titulo { margin: 0 0 10px; font-family: var(--fuente-titulo); font-size: 16px; font-weight: 800; }
+.modal__acciones { display: flex; flex-direction: column; gap: 8px; margin-top: 14px; }
+@media (min-width: 720px) { .modal { align-items: center; } }
+.modal iframe { width: 100%; height: 55vh; border: 1px solid var(--c-borde); border-radius: 8px; background: #fff; }
+
+/* ---------- Variados ---------- */
+.texto-marca { color: var(--c-marca); }
+.oculto { display: none !important; }
+.nota { font-size: 11px; color: var(--c-label); margin: 6px 0 0; }
+.check-fila { display: flex; align-items: center; gap: 8px; margin-top: 14px; font-size: 13px; font-weight: 700; }
+.check-fila input { width: 24px; height: 24px; min-height: 0; flex: 0 0 auto; }
+.error { color: var(--c-rojo); font-weight: 700; font-size: 12px; margin: 6px 0 0; }
+.aviso-global { padding: 10px 14px; background: var(--c-amarillo); color: #000; font-size: 12px; font-weight: 700; }
+.aviso-global--critico { background: var(--c-rojo); color: #fff; }
+
+/* Banner de actualización PWA */
+#bannerUpdate {
+    position: fixed; left: 12px; right: 12px; bottom: 12px; z-index: 90;
+    background: var(--c-tinta); color: #fff; padding: 12px 14px; border-radius: var(--radio);
+    font-size: 13px; font-weight: 700; box-shadow: 0 6px 20px rgba(0,0,0,.35);
+    display: none; align-items: center; justify-content: space-between; gap: 10px;
+}
+#bannerUpdate.on { display: flex; }
+#bannerUpdate button { background: var(--c-marca); color: #fff; border: none; border-radius: 8px; padding: 8px 12px; font-weight: 800; cursor: pointer; }

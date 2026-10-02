@@ -2,812 +2,245 @@
 <html lang="es" translate="no">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
     <meta name="google" content="notranslate">
-    <title>MANTENIMIENTO FRANQUICIAS V12.8</title>
+    <title>MANTENIMIENTO FRANQUICIAS V13</title>
 
-    <!-- CSS critico anti-FOUC: se aplica en el primer render, antes de Tailwind.
-         Pinta el fondo de marca y una barra roja superior al instante, para que
-         el arranque ya sea "de la marca". Incluye fallback por timeout para no
-         dejar la pagina invisible si algo falla. -->
+    <!-- Única constante de versión: de acá salen el ?v= de TODOS los assets y el pie.
+        Actualizar este número es la única forma de forzar caché nueva (sin reinstalar). -->
+    <script>window.MTZ_VERSION = '13.10.3';</script>
+
+    <!-- CSS crítico anti-FOUC: barra de marca instantánea + revelado con fallback por timeout. -->
     <style>
         html { background: #F4F7F6; }
-        /* Barra superior de marca visible al instante (identidad de marca en el primer paint). */
         body::before {
             content: ""; position: fixed; top: 0; left: 0; right: 0; height: 64px;
             background: linear-gradient(135deg, #D32F2F 0%, #B71C1C 100%);
             z-index: 1; pointer-events: none;
         }
-        /* El contenido arranca semioculto y se revela cuando la app esta lista (clase mtz-listo). */
         body > * { opacity: 0; }
         html.mtz-listo body::before { display: none; }
         html.mtz-listo body > * { opacity: 1; transition: opacity .2s ease-out; }
         @media (prefers-reduced-motion: reduce) { html.mtz-listo body > * { transition: none; } }
     </style>
     <script>
-        // Revelado del contenido con fallback por timeout: si algo falla, la pagina no queda invisible.
         (function () {
+            var v = encodeURIComponent(window.MTZ_VERSION);
             function revelar() { document.documentElement.classList.add('mtz-listo'); }
-            if (document.readyState === 'complete') { revelar(); }
-            else { window.addEventListener('load', revelar); }
+            var css = document.createElement('link');
+            css.rel = 'stylesheet'; css.href = 'css/app.css?v=' + v;
+            css.onload = revelar; css.onerror = revelar;
+            document.head.appendChild(css);
             setTimeout(revelar, 2500);
+            // Orden de carga: configuración y datos → servicios → PDF → app (último).
+            var archivos = [
+                'js/config.js', 'js/db.js', 'js/locales.js', 'js/almacen.js',
+                'js/agua.js', 'js/firmas.js', 'vendor/jspdf.umd.min.js',
+                'js/pdf.js', 'js/app.js'
+            ];
+            archivos.forEach(function (src) {
+                var s = document.createElement('script');
+                s.src = src + '?v=' + v; s.async = false;
+                document.head.appendChild(s);
+            });
         })();
     </script>
 
-    <link rel="manifest" href="manifest.json">
+    <link rel="manifest" href="manifest.json?v=1">
+    <!-- Tipografías de marca: online usan Google Fonts, offline caen en la pila del sistema (ver css/app.css). -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Montserrat:wght@700;900&family=Roboto:wght@400;500;700&display=swap">
     <meta name="theme-color" content="#B71C1C">
     <meta name="mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta name="apple-mobile-web-app-title" content="Informes">
-    
-    <link rel="apple-touch-icon" href="data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNTEyIiBoZWlnaHQ9IjUxMiIgdmlld0JveD0iMCAwIDUxMiA1MTIiIGZpbGw9Im5vbmUiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+PGNpcmNsZSBjeD0iMjU2IiBjeT0iMjU2IiByPSIyNTYiIGZpbGw9IiNDODAwMDAiLz48dGV4dCB4PSI1MCUiIHk9IjUyJSIgdGV4dC1hbmNob3I9Im1pZGRsZSIgZmlsbD0id2hpdGUiIGZvbnQtZmFtaWx5PSJBcmlhbCIgZm9udC1zaXplPSIyODAiIGZvbnQtd2VpZ2h0PSJib2xkIiBkeT0iLmx0Ij5NPC90ZXh0Pjwvc3ZnPg==">
-
-    <script>
-      if ('serviceWorker' in navigator) {
-        window.addEventListener('load', () => {
-          navigator.serviceWorker.register('sw.js').catch(err => console.error('PWA Error', err));
-        });
-      }
-    </script>
-
-    <script src="https://cdn.tailwindcss.com"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/signature_pad@4.0.0/dist/signature_pad.umd.min.js"></script>
-    <style>
-        /* Sistema de paleta roja de marca (referencia mostaza-auditoria-tecnica).
-           El naranja queda fuera de la app por completo. */
-        :root {
-            --c-marca: #D32F2F; --c-marca-oscuro: #B71C1C; --c-tinta: #1A1A1B;
-            --c-fondo: #F4F7F6; --c-superficie: #ffffff; --c-borde: #e2e5e4;
-            --c-borde-input: #9ca3af; --c-label: #6b7280; --c-texto: #333333;
-            --c-verde: #16a34a; --c-amarillo: #eab308; --c-rojo: #c80000;
-            --radio: 12px; --sombra: 0 2px 8px rgba(0,0,0,.08);
-        }
-        body { background-color: var(--c-fondo); font-family: sans-serif; -webkit-tap-highlight-color: transparent; color: var(--c-texto); }
-
-        /* Tarjetas: fondo blanco, borde izquierdo rojo de marca, radio 12px, sombra suave y aparicion fadein. */
-        .card {
-            background: var(--c-superficie); border: 1px solid var(--c-borde);
-            border-left: 5px solid var(--c-marca); border-radius: var(--radio);
-            padding: 1rem; margin-bottom: 1rem; box-shadow: var(--sombra);
-            animation: fadein .18s ease-out;
-        }
-        @keyframes fadein { from { opacity: 0; transform: translateY(4px); } to { opacity: 1; transform: none; } }
-        @media (prefers-reduced-motion: reduce) { .card { animation: none; } }
-
-        label { font-size: 9px; font-weight: 900; text-transform: uppercase; color: var(--c-label); display: block; margin-bottom: 2px; }
-
-        /* Inputs/selects/textarea: borde gris, radio 12px, foco con outline rojo de marca. */
-        input, select, textarea { border: 2px solid var(--c-borde-input) !important; padding: 10px !important; font-size: 14px !important; width: 100%; border-radius: var(--radio); background: #fff; color: #000; }
-        input:focus, select:focus, textarea:focus { outline: 3px solid var(--c-marca); outline-offset: 1px; }
-
-        .signature-box { border: 2px solid var(--c-tinta); background: #fff; border-radius: var(--radio); position: relative; }
-        .lock-btn { position: absolute; top: 5px; right: 5px; z-index: 10; background: #eee; padding: 5px; border-radius: 8px; border: 1px solid #ccc; font-size: 12px; }
-        .locked { background: #fee2e2 !important; opacity: 0.8; }
-        .tag-btn { background: #e5e7eb; border: 1px solid var(--c-borde-input); padding: 6px 10px; border-radius: 8px; font-size: 11px; font-weight: bold; cursor: pointer; }
-
-        /* Header de marca con gradiente rojo diagonal. */
-        .app-header { background: linear-gradient(135deg, #D32F2F 0%, #B71C1C 100%); }
-
-        /* Caja blanca redondeada para el logo oficial, con fallback a la letra "M". */
-        .logo-caja { flex: 0 0 auto; width: 40px; height: 40px; border-radius: 10px; background: #fff; box-shadow: var(--sombra); display: flex; align-items: center; justify-content: center; overflow: hidden; }
-        .logo-img { width: 100%; height: 100%; object-fit: contain; padding: 3px; }
-        .logo-caja--fallback { color: var(--c-marca); font-weight: 900; font-size: 22px; }
-
-        /* Semaforo/LED de estado: circular con borde blanco (la logica de color la maneja el JS). */
-        #statusLed { border: 2px solid #fff; box-shadow: 0 0 0 1px rgba(0,0,0,.08); }
-
-        /* Textos de acento en color de marca. */
-        .texto-marca { color: var(--c-marca); }
-
-        /* Botones al lenguaje de la referencia. */
-        .btn-principal { background: var(--c-marca); border-bottom: 4px solid var(--c-marca-oscuro); color: #fff; }
-        .btn-peligro { background: var(--c-rojo); color: #fff; }
-
-        /* Miniatura de foto con borde de marca. */
-        .foto-mini { border: 2px solid var(--c-marca); }
-    </style>
+    <link rel="apple-touch-icon" href="img/logo.png">
 </head>
-<body class="pb-24">
+<body>
 
-<header class="app-header text-white p-4 sticky top-0 z-50 flex justify-between items-center">
-    <div class="flex items-center gap-3">
-        <span class="logo-caja"><img class="logo-img" src="img/logo.png" alt="Mostaza" onerror="this.style.display='none';this.parentNode.classList.add('logo-caja--fallback');this.parentNode.textContent='M';"></span>
-        <div id="statusLed" class="h-5 w-5 rounded-full bg-gray-500"></div>
-        <h1 class="text-xs sm:text-lg font-bold uppercase">Mostaza <span class="text-white">Mantenimiento Franquicias V12.8</span></h1>
+<!-- Iconografía SVG propia (sin librerías): los botones mezclan <svg class="ic"> + texto. -->
+<svg xmlns="http://www.w3.org/2000/svg" style="display:none" aria-hidden="true">
+    <symbol id="ic-download" viewBox="0 0 24 24"><path d="M12 3v12M7 10l5 5 5-5M4 21h16"/></symbol>
+    <symbol id="ic-pin" viewBox="0 0 24 24"><path d="M12 21s-7-6-7-11a7 7 0 1 1 14 0c0 5-7 11-7 11z"/><circle cx="12" cy="10" r="2.5"/></symbol>
+    <symbol id="ic-lock" viewBox="0 0 24 24"><rect x="4" y="11" width="16" height="10" rx="2"/><path d="M8 11V7a4 4 0 0 1 8 0v4"/></symbol>
+    <symbol id="ic-unlock" viewBox="0 0 24 24"><rect x="4" y="11" width="16" height="10" rx="2"/><path d="M8 11V7a4 4 0 0 1 7.9-1"/></symbol>
+    <symbol id="ic-plus" viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></symbol>
+    <symbol id="ic-send" viewBox="0 0 24 24"><path d="M22 2 11 13M22 2l-7 20-4-9-9-4 20-7z"/></symbol>
+    <symbol id="ic-save" viewBox="0 0 24 24"><path d="M12 3v10M8 9l4 4 4-4M4 17v4h16v-4"/></symbol>
+    <symbol id="ic-share" viewBox="0 0 24 24"><circle cx="6" cy="12" r="2.5"/><circle cx="18" cy="5" r="2.5"/><circle cx="18" cy="19" r="2.5"/><path d="M8.2 10.8 15.8 6.2M8.2 13.2l7.6 4.6"/></symbol>
+    <symbol id="ic-check" viewBox="0 0 24 24"><path d="M5 13l4 4L19 7"/></symbol>
+    <symbol id="ic-refresh" viewBox="0 0 24 24"><path d="M21 12a9 9 0 1 1-2.6-6.4M21 3v6h-6"/></symbol>
+</svg>
+
+<header class="app-header">
+    <div class="header-izq">
+        <span class="logo-caja"><img class="logo-img" src="img/logo.png?v=1" alt="Mostaza" onerror="this.style.display='none';this.parentNode.classList.add('logo-caja--fallback');this.parentNode.textContent='M';"></span>
+        <div id="statusLed"></div>
+        <h1>Mostaza <span class="sub">Mantenimiento Franquicias <span id="verTitulo">V13</span></span></h1>
     </div>
-    <button onclick="resetAll()" class="btn-peligro p-2 rounded text-[10px] font-bold text-white uppercase">Limpiar Todo</button>
+    <div style="display:flex;gap:8px;align-items:center">
+        <button id="btnInstalar" class="btn btn-mini" style="display:none;background:#fff;color:var(--c-marca);font-weight:900"><svg class="ic"><use href="#ic-download"/></svg> Instalar App</button>
+        <button id="btnReset" class="btn-peligro">Limpiar Todo</button>
+    </div>
 </header>
 
-<main class="max-w-2xl mx-auto p-3">
-    <form id="mainForm">
-        <div class="card">
-            <h3 class="text-xs font-black uppercase text-gray-500 mb-3 border-b">1. Datos de la Intervención</h3>
-            <div class="grid grid-cols-6 gap-2">
-                <div class="col-span-4"><label>Fecha</label><input type="date" id="fecha" class="persist font-bold"></div>
-                <div class="col-span-2"><label>Ticket #</label><input type="text" id="ticket" class="persist"></div>
-                <div class="col-span-6"><label>Nombre Sucursal</label><input type="text" id="local" list="listaNombres" class="persist uppercase font-bold texto-marca" oninput="sincronizar('nombre')"><datalist id="listaNombres"></datalist></div>
-                <div class="col-span-3"><label>Sigla Sistema</label><input type="text" id="siglaSis" list="listaSiglaSis" class="persist text-center font-bold" oninput="sincronizar('sis')"><datalist id="listaSiglaSis"></datalist></div>
-                <div class="col-span-3"><label>Sigla Ticket</label><input type="text" id="siglaTic" list="listaSiglaTic" class="persist text-center font-bold" oninput="sincronizar('tic')"><datalist id="listaSiglaTic"></datalist></div>
-                <div class="col-span-6 mt-2">
-                    <label>Técnico Responsable</label>
-                    <select id="tecnico" class="persist">
-                        <option value="Fernando Soria">FERNANDO SORIA</option>
-                        <option value="Tomas Vera">TOMAS VERA</option>
-                        <option value="Ana Guerrero">ANA GUERRERO</option>
-                        <option value="Francisco Rametta">FRANCISCO RAMETTA</option>
-                    </select>
+<div id="avisoQuota" class="aviso-global aviso-global--critico oculto"></div>
+
+<main>
+    <form id="mainForm" onsubmit="return false">
+
+        <!-- 1 · DATOS DE LA INTERVENCIÓN -->
+        <section class="card">
+            <h3>1 · Datos de la Intervención</h3>
+            <div class="grid">
+                <div class="c4"><label>Fecha</label><input type="date" id="fecha"></div>
+                <div class="c2"><label>Ticket # <span style="color:var(--c-marca)">*</span></label><input type="text" id="ticket" autocomplete="off"></div>
+
+                <div class="c6">
+                    <label>Franquicia (buscá por nombre, sigla o provincia)</label>
+                    <input type="search" id="localBusqueda" placeholder="SAN JUSTO, FSJU, MENDOZA…" autocomplete="off">
+                    <div id="busqResultados" class="busq-resultados"></div>
+                    <div id="fichaLocal" class="ficha-local oculto"></div>
                 </div>
-                <div class="col-span-3 mt-2"><label>Tiempo de Labor (hs)</label><input type="number" id="labor" class="persist font-bold text-blue-700" min="2" step="1" placeholder="2 hs" onkeydown="bloquearInvalidos(event)" oninput="validarLabor(this)" onblur="enforzarPisoLabor(this)"></div>
-                <div class="col-span-3 mt-2"><label>Tiempo de Traslado (hs)</label><input type="number" id="traslado" class="persist font-bold text-blue-700" min="0" step="1" placeholder="0 hs" onkeydown="bloquearInvalidos(event)" oninput="validarTraslado(this)" onblur="enforzarDefaultTraslado(this)"></div>
-                <div class="col-span-6 mt-2">
-                    <label>Prioridad / Tipo de Servicio</label>
-                    <select id="prioridad" class="persist font-bold text-blue-700">
-                        <option value="">-- SELECCIONAR PRIORIDAD --</option>
-                        <option value="PROGRAMADO">PROGRAMADO (PREVENTIVO)</option>
-                        <option value="URGENTE">URGENTE (CORRECTIVO)</option>
-                        <option value="RE-VISITA (FALLA)">RE-VISITA POR FALLA PREVIA</option>
-                        <option value="RE-VISITA (REPUESTO)">RE-VISITA POR REPUESTO PENDIENTE</option>
-                        <option value="GARANTIA">CARÁCTER DE GARANTÍA</option>
-                    </select>
-                </div>
-                <div class="col-span-6 mt-2">
-                    <label>Código de Informe Único</label>
-                    <input type="text" id="codigo_informe" readonly class="persist bg-gray-100 font-mono text-center font-bold text-gray-700" placeholder="Se genera automáticamente al seleccionar local">
+
+                <div class="c6" id="campoTecnico"><label>Técnico Responsable</label><select id="tecnico"></select></div>
+                <div class="c3"><label>Tiempo de Labor (hs)</label><input type="number" id="labor" min="2" step="1" placeholder="2 hs"></div>
+                <div class="c3"><label>Tiempo de Traslado (hs)</label><input type="number" id="traslado" min="0" step="1" placeholder="0 hs"></div>
+                <div class="c6"><label>Prioridad / Tipo de Servicio</label><select id="prioridad"></select></div>
+                <div class="c6"><label>Código de Informe Único</label><input type="text" id="codigo_informe" readonly></div>
+
+                <div class="c6" style="display:flex;gap:8px;align-items:center;flex-wrap:wrap">
+                    <button type="button" id="btnGeo" class="btn btn-mini"><svg class="ic"><use href="#ic-pin"/></svg> Marcar ubicación</button>
+                    <span id="geoLabel" class="nota"></span>
                 </div>
             </div>
-        </div>
+        </section>
 
-        <div class="card border-l-8 border-l-blue-500">
-            <h3 class="text-xs font-black uppercase text-blue-600 mb-3 border-b">2. Calidad de Agua</h3>
-            <div class="space-y-4">
-                <div class="flex items-center justify-between gap-4">
-                    <div class="flex-1"><label>PPM Post-Filtrado</label><input type="number" id="ppm" class="persist w-full" oninput="evaluarJerarquia()"></div>
-                    <div class="flex items-center gap-1 mt-4">
-                        <input type="checkbox" id="ppm_pendiente" class="persist" onchange="togglePpmPendiente()">
-                        <label for="ppm_pendiente" class="text-xs text-gray-500 font-bold select-none cursor-pointer">Pendiente</label>
-                    </div>
+        <!-- 2 · CALIDAD DE AGUA -->
+        <section class="card card--agua">
+            <h3>2 · Calidad de Agua <span id="aguaChip" class="semaforo-chip chip--gris" style="float:right"><span class="chip-led"></span>SIN MEDIR</span></h3>
+            <div class="grid">
+                <div class="c4"><label>PPM Post-Filtrado</label><input type="number" id="ppm" inputmode="numeric" min="0" max="9999" placeholder="ej. 95"></div>
+                <div class="c2" style="display:flex;align-items:center;padding-top:18px">
+                    <label style="display:flex;align-items:center;gap:6px;margin:0;cursor:pointer">
+                        <input type="checkbox" id="ppm_pendiente" style="width:22px;height:22px;min-height:0"> Sin medir
+                    </label>
                 </div>
-                <div class="grid grid-cols-3 gap-2">
-                    <div><label>Filtro</label><select id="f_filtrado" class="persist" onchange="evaluarJerarquia()"><option value="OP">OP</option><option value="NO OP">NO OP</option><option value="N/A">N/A</option></select></div>
-                    <div><label>Ablandador</label><select id="f_ablandador" class="persist" onchange="evaluarJerarquia()"><option value="OP">OP</option><option value="NO OP">NO OP</option><option value="N/A">N/A</option></select></div>
-                    <div><label>Ósmosis</label><select id="f_osmosis" class="persist" onchange="evaluarJerarquia()"><option value="N/A">N/A</option><option value="OP">OP</option><option value="NO OP">NO OP</option></select></div>
-                </div>
-                <div class="mt-3">
-                    <label>Detalle de Instalación Hídrica</label>
-                    <textarea id="obsAgua" class="persist text-xs" rows="2" placeholder="Detalle cañerías, desagotes, ubicación..."></textarea>
-                </div>
+                <div class="c2"><label>Filtro</label><select id="f_filtrado"><option value="OP">OP</option><option value="NO OP">NO OP</option><option value="N/A">N/A</option></select></div>
+                <div class="c2"><label>Ablandador</label><select id="f_ablandador"><option value="OP">OP</option><option value="NO OP">NO OP</option><option value="N/A">N/A</option></select></div>
+                <div class="c2"><label>Ósmosis</label><select id="f_osmosis"><option value="N/A" selected>N/A</option><option value="OP">OP</option><option value="NO OP">NO OP</option></select></div>
             </div>
-        </div>
+            <p id="aguaPorQue" class="agua-por-que"></p>
+            <div style="margin-top:8px"><label>Detalle de Instalación Hídrica</label>
+                <textarea id="obsAgua" rows="2" placeholder="Detalle cañerías, desagotes, ubicación..."></textarea></div>
+        </section>
 
-        <div class="card border-l-8 border-l-purple-500">
-            <h3 class="text-xs font-black uppercase text-purple-600 mb-3 border-b">3. Observaciones Iniciales (Arribo)</h3>
-            <textarea id="obsPrevias" class="persist text-xs" rows="2" placeholder="Estado previo..."></textarea>
-        </div>
+        <!-- 3 · OBSERVACIONES INICIALES -->
+        <section class="card card--arribo">
+            <h3>3 · Observaciones Iniciales (Arribo)</h3>
+            <textarea id="obsPrevias" rows="2" placeholder="Estado previo..."></textarea>
+        </section>
 
+        <!-- 4 · EQUIPOS -->
         <div id="equiposGrid"></div>
-        <button type="button" onclick="addEquipo()" class="w-full mb-6 py-3 border-2 border-dashed border-gray-400 font-bold text-gray-400 uppercase text-xs">+ Añadir Equipo</button>
+        <button type="button" id="btnAddEquipo" class="btn btn--bloque" style="margin-bottom:16px;border-style:dashed"><svg class="ic"><use href="#ic-plus"/></svg> Añadir Equipo</button>
 
-        <div class="card">
-            <h3 class="text-xs font-black uppercase mb-2 texto-marca border-b">5. Registro Fotográfico</h3>
-            <div class="flex flex-wrap items-center gap-2 mb-2">
-                <input type="file" id="fotoInput" accept="image/*" multiple class="text-xs w-auto">
-                <span id="fotoHelp" class="text-[10px] text-red-600 font-bold"></span>
+        <!-- 5 · FOTOS -->
+        <section class="card">
+            <h3>5 · Registro Fotográfico</h3>
+            <div style="display:flex;flex-wrap:wrap;align-items:center;gap:8px">
+                <input type="file" id="fotoInput" accept="image/*" capture="environment" multiple style="width:auto;min-height:0;font-size:12px">
+                <span id="fotoHelp" class="nota"></span>
             </div>
-            <div id="fotoPreview" class="grid grid-cols-4 gap-2"></div>
-        </div>
+            <p class="nota">Cada foto se estampa con fecha, hora y ubicación GPS (si está marcada).</p>
+            <div id="fotoPreview" class="foto-fila"></div>
+        </section>
 
-        <div class="card border-l-8 border-l-green-600">
-            <h3 class="text-xs font-black uppercase text-green-600 mb-3 border-b">6. Recomendaciones Finales</h3>
-            <textarea id="obsFinales" class="persist text-xs" rows="3" placeholder="Sugerencias finales..."></textarea>
-        </div>
+        <!-- 6 · RECOMENDACIONES -->
+        <section class="card card--fin">
+            <h3>6 · Recomendaciones Finales</h3>
+            <textarea id="obsFinales" rows="3" placeholder="Sugerencias finales..."></textarea>
+        </section>
 
-        <div class="card">
-            <div class="grid grid-cols-1 gap-6">
-                <div class="text-center">
+        <!-- FIRMAS -->
+        <section class="card">
+            <div class="firmas-grid">
+                <div class="firma-col">
                     <label>Firma Técnico</label>
-                    <div class="signature-box mx-auto" id="boxT"><button type="button" class="lock-btn" onclick="toggleLock('T')">🔓</button><canvas id="padT" width="350" height="150" class="w-full h-auto"></canvas></div>
-                    <button type="button" onclick="clearPad('T')" class="text-[9px] underline uppercase mt-2">Limpiar Firma Téc.</button>
+                    <div class="signature-box" id="boxT"><button type="button" class="lock-btn" onclick="MTZ.toggleLock('T')"><svg class="ic"><use href="#ic-unlock"/></svg></button><canvas id="padT"></canvas></div>
+                    <button type="button" class="limpiar" onclick="MTZ.clearPad('T')">Limpiar Firma Téc.</button>
                 </div>
-                <div class="text-center border-t pt-4">
+                <div class="firma-col" style="border-top:1px solid var(--c-borde);padding-top:14px">
                     <label>Firma Encargado</label>
-                    <div class="signature-box mx-auto" id="boxE"><button type="button" class="lock-btn" onclick="toggleLock('E')">🔓</button><canvas id="padE" width="350" height="150" class="w-full h-auto"></canvas></div>
-                    <input type="text" id="nombreEncargado" class="persist text-sm uppercase text-center font-bold mt-2" placeholder="NOMBRE ENCARGADO">
-                    <button type="button" onclick="clearPad('E')" class="text-[9px] underline uppercase mt-2">Limpiar Firma Enc.</button>
+                    <div class="signature-box" id="boxE"><button type="button" class="lock-btn" onclick="MTZ.toggleLock('E')"><svg class="ic"><use href="#ic-unlock"/></svg></button><canvas id="padE"></canvas></div>
+                    <input type="text" id="nombreEncargado" placeholder="NOMBRE ENCARGADO" style="text-transform:uppercase;text-align:center;font-weight:700;margin-top:8px">
+                    <button type="button" class="limpiar" onclick="MTZ.clearPad('E')">Limpiar Firma Enc.</button>
                 </div>
             </div>
-        </div>
+        </section>
 
-        <button type="button" onclick="generarPDF()" class="btn-principal w-full text-white py-4 text-xl font-black uppercase rounded shadow-xl">Generar Informe V12.8</button>
+        <button type="button" id="btnGenerar" class="btn-principal">Generar Informe <span id="verBtn" style="font-weight:400;font-size:12px;opacity:.75">V13</span></button>
     </form>
 </main>
 
-<script>
-    const DB_LOCALES = [
-        { n: "San Justo", s: "FSJU", t: "FCSJ3", id: 2 }, { n: "Laferrere 2", s: "FLF2", t: "", id: 3 }, { n: "Ramos", s: "FMRAM", t: "", id: 4 }, { n: "Lomas Auto", s: "FLOZ", t: "FLOA,FMLOA", id: 46 }, { n: "Lomas", s: "FMLCA", t: "", id: 47 }, { n: "Lanús 2", s: "FLA2", t: "FMLAC", id: 62 }, { n: "Montegrande", s: "FMGD", t: "FMGRA", id: 7 }, { n: "Ezeiza", s: "FEZE", t: "FEZEA", id: 5 }, { n: "Canning", s: "FMCAN", t: "", id: 6 }, { n: "San Juan", s: "FSJN", t: "FSJUA", id: 23 }, { n: "San Juan 2", s: "FSJ2", t: "FMSJ2", id: 24 }, { n: "La Pampa", s: "FLPA", t: "FROSA", id: 64 }, { n: "Gallegos", s: "FMP1", t: "FMDQG", id: 75 }, { n: "Aldrey", s: "FMP2", t: "FMDQ2", id: 76 }, { n: "La Perla", s: "FMD3", t: "FMP3", id: 77 }, { n: "Mar del Plata Peatonal", s: "FMDQ4", t: "", id: 78 }, { n: "Olavarría", s: "FOLAV", t: "", id: 79 }, { n: "Tandil", s: "FCTA", t: "FTAND", id: 80 }, { n: "Tandil 2", s: "TRD2", t: "", id: 81 }, { n: "La Plata 2", s: "FLP2", t: "FLPCA", id: 34 }, { n: "La Plata 3", s: "FLP3", t: "FLPC3", id: 35 }, { n: "La Plata 4", s: "FLP4", t: "FLPC4", id: 36 }, { n: "City Bell", s: "FCYB", t: "FMCB1", id: 37 }, { n: "República", s: "FRDN", t: "FRPNI", id: 38 }, { n: "Gonnet", s: "FGON", t: "FGONN", id: 43 }, { n: "Rotonda", s: "FMRG", t: "FROG", id: 45 }, { n: "Berazategui", s: "FBER", t: "FMBER", id: 44 }, { n: "Wilde", s: "FMWVP", t: "", id: 48 }, { n: "Carre Quilmes", s: "FCQU", t: "FCFQU", id: 63 }, { n: "Ushuaia", s: "FUSH", t: "FSHU,FUSHA", id: 50 }, { n: "Río Grande", s: "FRGD", t: "FRGRD", id: 51 }, { n: "Río Gallegos", s: "FRGA", t: "", id: 73 }, { n: "Portal Salta", s: "FPSA", t: "FTART", id: 52 }, { n: "Salta Libertad", s: "FSLI", t: "FSLIB", id: 53 }, { n: "Salta Peatonal", s: "FSVP", t: "FSAL4", id: 54 }, { n: "Salta Auto", s: "FSAA", t: "FMSAA", id: 55 }, { n: "Jujuy", s: "FJUJ", t: "FJUJY", id: 57 }, { n: "Salta Orán", s: "FSAO", t: "", id: 58 }, { n: "Salta Auto 2", s: "FMSAA", t: "", id: 82 }, { n: "Constitución", s: "FMCNT", t: "", id: 60 }, { n: "Pompeya", s: "FMPYA", t: "", id: 74 }, { n: "Terrada", s: "FMTER", t: "FMRYT", id: 70 }, { n: "Flores", s: "FFLO", t: "FFLOR", id: 66 }, { n: "Primera Junta", s: "FMPRI", t: "", id: 67 }, { n: "Once", s: "FMONC", t: "", id: 69 }, { n: "Cabildo", s: "FCAB", t: "FCABI", id: 10 }, { n: "Cabildo 2", s: "FMCYM", t: "", id: 11 }, { n: "Spinetto", s: "FSPI", t: "FSPIN", id: 61 }, { n: "Bolívar", s: "FBOL", t: "FMBLV", id: 71 }, { n: "Junín", s: "FMJUN", t: "", id: 72 }, { n: "Formosa", s: "FMFOR", t: "", id: 65 }, { n: "Tucumán 2", s: "FTU2", t: "FMTCM", id: 25 }, { n: "Tucumán 3", s: "FTU3", t: "FMTM2", id: 26 }, { n: "Tucumán 4", s: "FTU4", t: "FMTU4", id: 27 }, { n: "Tucumán 5", s: "FTC5", t: "", id: 28 }, { n: "Tucumán 6", s: "FTC6", t: "FMTU6", id: 29 }, { n: "Tucumán 7", s: "FMTU7", t: "", id: 30 }, { n: "Tucumán 8", s: "FTC8", t: "FMTC8", id: 31 }, { n: "Tucumán 9", s: "FMTU9", t: "", id: 33 }, { n: "Portal Tucumán", s: "MPT", t: "MPTG", id: 32 }, { n: "S. del Estero", s: "FSDE", t: "FSANT", id: 39 }, { n: "Luján", s: "FLUJ", t: "FLUJA", id: 20 }, { n: "F. Álvarez", s: "FFRA", t: "", id: 18 }, { n: "Merlo", s: "FMER", t: "FMERL", id: 86 }, { n: "Liniers", s: "FLIN", t: "FLINR", id: 68 }, { n: "San Miguel 3", s: "FSM2", t: "FMSM3,FSM3", id: 84 }, { n: "SAN MIGUEL AUTO", s: "FMSMA", t: "", id: 85 }, { n: "San Fernando", s: "FSAF", t: "", id: 81 }, { n: "Moreno", s: "FMORE", t: "FMMRE", id: 19 }, { n: "Corrientes", s: "FCOR", t: "FMCOR", id: 87 }, { n: "Resistencia", s: "FMRES", t: "", id: 88 }, { n: "San Luis", s: "FSLS", t: "FMSLI", id: 89 }, { n: "Villa del Parque", s: "FVDP", t: "", id: 1 }, { n: "Caseros", s: "FMMCB", t: "", id: 90 }, { n: "SAN MARTIN PEATONAL", s: "FMSVP", t: "", id: 21 }, { n: "San Martín Auto", s: "FSMA", t: "F3DF", id: 22 }, { n: "San Isidro", s: "FSIS", t: "FMSIS", id: 15 }, { n: "Grand Bourg", s: "FGBG", t: "FGRBG", id: 82 }, { n: "José C. Paz", s: "FJCP", t: "FMJCP", id: 83 }, { n: "Zárate", s: "FZAR", t: "FMZAR", id: 8 }, { n: "Palmas Pilar", s: "FPPI", t: "FPMPI", id: 14 }, { n: "La Rioja", s: "FMRVP", t: "", id: 16 }, { n: "Catamarca", s: "FCAT", t: "FMCAT", id: 17 }, { n: "Gualeguaychú", s: "FMGUA", t: "", id: 9 }, { n: "Parque Chac", s: "FPCH", t: "FMPCH", id: 59 }, { n: "Boedo", s: "FBOE", t: "FMBOE", id: 90 }, { n: "San Telmo", s: "FSTM", t: "FMSTO", id: 91 }, { n: "Av. de Mayo", s: "FAVM", t: "FAMAY", id: 92 }, { n: "Av. de Mayo 2", s: "FAVM2", t: "FAMA2", id: 93 }, { n: "9 de Julio", s: "F9DJ", t: "FM9JU", id: 94 }, { n: "Callao", s: "FMCYC", t: "", id: 95 }, { n: "Urquiza", s: "FURQ", t: "FMURQ", id: 13 }, { n: "Ribera Santa Fe", s: "FRSF", t: "FSFER", id: 97 }, { n: "Walmart Sta. Fe", s: "FWSF", t: "FSFEW", id: 98 }, { n: "Santa Fe P.", s: "FMSFV", t: "", id: 99 }, { n: "Rafaela", s: "FRAF", t: "FRAFA", id: 96 }, { n: "Portal Rosario", s: "FPRO", t: "FPROS", id: 100 }, { n: "Pellegrini", s: "FPEL", t: "FMROS", id: 101 }, { n: "Rosario Sur", s: "FRSM", t: "", id: 102 }, { n: "Oroño", s: "FROA", t: "FORO", id: 103 }, { n: "San Nicolás", s: "FMSNI", t: "", id: 104 }, { n: "Puma", s: "FMPUM", t: "", id: 105 }, { n: "Funes", s: "FMFUN", t: "", id: 106 }, { n: "Alto Rosario", s: "MAR", t: "", id: 107 }, { n: "City Center", s: "MCR", t: "", id: 108 }, { n: "Güemes", s: "FGUE", t: "", id: 12 }, { n: "MENDOZA CENTRO (Peatonal)", s: "FMMSM", t: "", id: 40 }, { n: "Mendoza Colón", s: "FMMCO", t: "", id: 41 }, { n: "San Rafael", s: "FSRM", t: "", id: 42 }, { n: "Bariloche", s: "FBA1", t: "FMBRC", id: 49 }, { n: "WALMART GUAYMALLEN", s: "MWG", t: "", id: 109 }, { n: "BARRACAS MALL", s: "MBM", t: "", id: 110 }, { n: "LUJAN DE CUYO", s: "MML", t: "", id: 111 }, { n: "MENDOZA", s: "MMZ", t: "", id: 112 }, { n: "ARENA MAIPU", s: "MAM", t: "", id: 113 }, { n: "NEUQUEN  3 ( LA ANONIMA )", s: "MLA", t: "", id: 114 }, { n: "NEUQUEN 2  ALTO COMAHUE", s: "MNA", t: "", id: 115 }, { n: "NEUQUEN  1", s: "MNQ", t: "", id: 116 }, { n: "NEUQUEN  4  ( WALMART )", s: "MWN", t: "", id: 117 }, { n: "AEROPARQUE", s: "MAE", t: "", id: 118 }, { n: "DOT", s: "MDO", t: "", id: 119 }, { n: "CARREFOUR VELEZ", s: "MVZ", t: "", id: 120 }, { n: "WARNES", s: "MCW", t: "", id: 121 }, { n: "SAN MARTIN", s: "MST", t: "", id: 122 }, { n: "NORCENTER", s: "MNC", t: "", id: 123 }, { n: "TORTUGUITA", s: "MOT", t: "", id: 124 }, { n: "SOLEIL", s: "MSF", t: "", id: 125 }, { n: "PASEO PILAR", s: "MPP", t: "", id: 126 }, { n: "PACHECO", s: "MBP", t: "", id: 127 }, { n: "CONSTITUYENTES", s: "MCT", t: "", id: 128 }, { n: "DEVOTO", s: "MDV", t: "", id: 129 }, { n: "PANAMERICANA", s: "MPA", t: "", id: 130 }, { n: "NEUQUEN AUTO", s: "MAN", t: "", id: 131 }, { n: "HAEDO AUTO", s: "MMH", t: "", id: 132 }, { n: "NINE", s: "MNI", t: "", id: 133 }, { n: "MORON", s: "MMVP", t: "", id: 134 }, { n: "PLAZA OESTE", s: "MPO", t: "", id: 135 }, { n: "SAN MIGUEL 1", s: "MSM", t: "", id: 136 }, { n: "LUJAN 2", s: "MLU", t: "", id: 137 }, { n: "SAN JUSTO 4", s: "MCS", t: "", id: 138 }, { n: "CATAN", s: "MGC", t: "", id: 139 }, { n: "SAN JUSTO 1", s: "MSJ", t: "", id: 140 }, { n: "TABLADA", s: "MTA", t: "", id: 141 }, { n: "SAN JUSTO 2", s: "MWS", t: "", id: 142 }, { n: "PARANÁ", s: "MEP", t: "", id: 143 }, { n: "SALTA", s: "MSN", t: "", id: 144 }, { n: "UNICENTER", s: "MUN", t: "", id: 145 }, { n: "CASEROS", s: "MCB", t: "", id: 146 }, { n: "PUERTO DE FRUTO", s: "MPF", t: "", id: 147 }, { n: "TIGRE CALLE", s: "MTC", t: "", id: 148 }, { n: "PARQUE LELOIR", s: "MLE", t: "", id: 149 }, { n: "COMODORO CENTRO", s: "MCC", t: "", id: 150 }, { n: "COMODORO RIVADAVIA", s: "MWC", t: "", id: 151 }, { n: "Comodoro Auto", s: "MCH", t: "", id: 152 }, { n: "CARREFOUR AVELLANEDA", s: "MCA", t: "", id: 153 }, { n: "AMERICAN FAVS", s: "AFA", t: "", id: 154 }, { n: "ALTO AVELLANEDA", s: "MAA", t: "", id: 155 }, { n: "MADERO 2", s: "MOC", t: "", id: 156 }, { n: "MADERO 3", s: "MPD", t: "", id: 157 }, { n: "MADRYN", s: "MMA", t: "", id: 158 }, { n: "TRELEW", s: "MTR", t: "", id: 159 }, { n: "LAS TOSCAS", s: "MLT", t: "", id: 160 }, { n: "BOULEVARD", s: "MBO", t: "", id: 161 }, { n: "LOMITAS", s: "MLO", t: "", id: 162 }, { n: "PORTAL LOMAS", s: "MPL", t: "", id: 163 }, { n: "Bahia Blanca", s: "MBB", t: "", id: 164 }, { n: "QUILMES  JUMBO", s: "MQM", t: "", id: 165 }, { n: "SARANDI", s: "MAU", t: "", id: 166 }, { n: "VARELA", s: "MVA", t: "", id: 167 }, { n: "LA PLATA", s: "MLP", t: "", id: 168 }, { n: "DOLORES", s: "MDB", t: "", id: 169 }, { n: "AV LA PLATA CALLE", s: "MLC", t: "", id: 170 }, { n: "ACOYTE", s: "MAC", t: "", id: 171 }, { n: "CABALLITO", s: "MVC", t: "", id: 172 }, { n: "DIAGONAL", s: "MDI", t: "", id: 173 }, { n: "FLORIDA", s: "MFL", t: "", id: 174 }, { n: "PELLEGRINI BS AS", s: "MC9", t: "", id: 175 }, { n: "CORRIENTES Y 9 DE JULIO", s: "MCO", t: "", id: 176 }, { n: "FLORIDA 2", s: "MF2", t: "", id: 177 }, { n: "GALERIAS PACIFICO", s: "MGP", t: "", id: 178 }, { n: "RECOLETA", s: "MRM", t: "", id: 179 }, { n: "CORDOBA GENERAL PAZ", s: "MCG", t: "", id: 180 }, { n: "PASEO LIBERTAD", s: "MCL", t: "", id: 181 }, { n: "RIO CUARTO", s: "MRC", t: "", id: 182 }, { n: "PATIO OLMOS", s: "MCP", t: "", id: 183 }, { n: "VILLA CABRERA", s: "MCV", t: "", id: 184 }, { n: "NUEVO CENTRO", s: "MSC", t: "", id: 185 }, { n: "SHOPPING JOCKEY CLUB", s: "MJC", t: "", id: 186 }, { n: "MOSTAZA POSADAS", s: "MMP", t: "", id: 187 }, { n: "ALBERDI", s: "MAT", t: "", id: 188 }, { n: "ABASTO", s: "MAB", t: "", id: 189 }, { n: "ALTO PALERMO", s: "MAP", t: "", id: 190 }, { n: "JUAN B JUSTO", s: "MCJ", t: "", id: 191 }, { n: "TRENES", s: "MJS", t: "", id: 192 }, { n: "PARQUE BROWN", s: "MPB", t: "", id: 193 }, { n: "CENTENARIO", s: "MPC", t: "", id: 194 }, { n: "FOOD TRUCK", s: "MT1", t: "", id: 195 }, { n: "(sin nombre en ninguna fuente) MSB", s: "MSB", t: "", id: 196 }, { n: "Posadas Calle", s: "MMC", t: "", id: 197 }, { n: "MORENO 1", s: "MCM", t: "", id: 198 }, { n: "ITUZAINGO", s: "MIVP", t: "", id: 199 }, { n: "(sin nombre en ninguna fuente) MLZ", s: "MLZ", t: "", id: 200 }, { n: "(sin nombre en ninguna fuente) MPIL", s: "MPIL", t: "", id: 201 }, { n: "VIA PUBLICA", s: "MPAT", t: "", id: 202 }, { n: "CASTELAR", s: "FCAS", t: "FCAST", id: 203 }, { n: "QUILMES P.", s: "FQUP", t: "FMQCA", id: 204 }, { n: "LA PLATA 6", s: "FLP6", t: "FLPC6", id: 205 }, { n: "NEUQUEN CENTRO", s: "FMNVP", t: "", id: 206 }, { n: "FOOD TRUCK 2", s: "MFT2", t: "", id: 207 }, { n: "MORON", s: "FMMVP", t: "", id: 208 }, { n: "Urquiza", s: "URQ", t: "", id: 209 }, { n: "Chacabuco", s: "CHA", t: "", id: 210 }, { n: "GUALEGUAYCHÚ", s: "FGUA", t: "", id: 211 }, { n: "TERRADA", s: "RYT", t: "", id: 212 }, { n: "Plaza España", s: "FMCPE", t: "", id: 213 }, { n: "Carlos Paz", s: "FMVCP", t: "", id: 214 }
-    ];
+<div id="pieVersion" style="text-align:center;font-size:11px;opacity:.55;padding:14px 0 20px"></div>
 
-    // Logo oficial embebido como dataURL base64 (robusto offline/file://; el archivo img/logo.png sigue en el repo).
-    const LOGO_DATAURL = "data:image/png;base64,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";
+<!-- MODAL: carga manual de franquicia fuera del padrón -->
+<div class="modal modal--oculto" id="modalManual" role="dialog" aria-modal="true">
+    <div class="modal__caja">
+        <h3 class="modal__titulo">Carga manual de local</h3>
+        <p class="nota">Para franquicias que todavía no están en el padrón (sin ID asignado). Queda asentado en el informe que la sigla se cargó a mano.</p>
+        <label>Nombre del local *</label><input type="text" id="mNombre" placeholder="ej. LOMAS CENTER 2">
+        <div class="grid" style="margin-top:8px">
+            <div class="c3"><label>Sigla sistema</label><input type="text" id="mSiglaSis"></div>
+            <div class="c3"><label>Sigla ticket</label><input type="text" id="mSiglaTic"></div>
+            <div class="c3"><label>ID Generador * (3 dígitos)</label><input type="number" id="mId" min="1" max="999" placeholder="ej. 109"></div>
+            <div class="c3"><label>Provincia</label><input type="text" id="mProv"></div>
+        </div>
+        <p id="mError" class="error"></p>
+        <div class="modal__acciones">
+            <button type="button" id="mAceptar" class="btn btn--principal" style="background:var(--c-marca);border-color:var(--c-marca);color:#fff">Usar este local</button>
+            <button type="button" id="mCancelar" class="btn">Volver al buscador</button>
+        </div>
+    </div>
+</div>
 
-    let padT, padE, processedImages = [], locks = { T: false, E: false }, waterColor = "VERDE";
-    let firmaTData = '', firmaEData = ''; // B6/B11: dataURLs de firmas restauradas, re-aplicadas tras el resize
-    let avisoQuotaMostrado = false; // evita repetir la alerta de cuota llena en cada tecla
-    const TAREAS = [
-        "Limpieza grupo", "Cambio juntas", "Calibración", "Descalcificación", 
-        "Gramaje y Recetas", "Limpieza bomba leche", "Limpieza válvula ELF3", 
-        "Limpieza chicler", "Destapado desagüe"
-    ];
+<!-- MODAL: confirmación final anti-omisión -->
+<div class="modal modal--oculto" id="modalConfirm" role="dialog" aria-modal="true">
+    <div class="modal__caja">
+        <h3 class="modal__titulo">Confirmar antes de generar</h3>
+        <div id="confirmFaltantes"></div>
+        <label class="check-fila" style="margin-top:10px">
+            <input type="checkbox" id="confirmCheck">
+            Confirmo que <b>todos los equipos fueron revisados</b> y que las fotos, firmas y observaciones están completas.
+        </label>
+        <p id="confirmError" class="error"></p>
+        <div class="modal__acciones">
+            <button type="button" id="confirmSi" class="btn btn--principal" style="background:var(--c-marca);border-color:var(--c-marca);color:#fff">Generar informe</button>
+            <button type="button" id="confirmNo" class="btn">Volver y revisar</button>
+        </div>
+    </div>
+</div>
 
-    // B11: ajustar la resolución interna del canvas al devicePixelRatio y al tamaño renderizado.
-    // signature_pad limpia el pad al redimensionar, por eso se preserva y re-restaura el trazo.
-    // fallbackDataURL: firma restaurada vía fromDataURL (sin datos de puntos internos); se re-aplica
-    // cuando el pad no tiene trazo "vivo" para que una firma restaurada sobreviva a un resize/rotación.
-    function resizeCanvas(canvas, pad, fallbackDataURL) {
-        if (!canvas || !pad) return;
-        const data = (typeof pad.toData === 'function' && !pad.isEmpty()) ? pad.toData() : null;
-        const ratio = Math.max(window.devicePixelRatio || 1, 1);
-        const rect = canvas.getBoundingClientRect();
-        const w = rect.width || canvas.clientWidth || canvas.width;
-        const h = rect.height || canvas.clientHeight || canvas.height;
-        canvas.width = w * ratio;
-        canvas.height = h * ratio;
-        const ctx = canvas.getContext('2d');
-        ctx.scale(ratio, ratio);
-        pad.clear(); // reinicia el estado interno tras cambiar el tamaño del canvas
-        if (data) {
-            // Trazo dibujado en vivo: se preserva con toData/fromData (soporta el nuevo tamaño).
-            try { pad.fromData(data); } catch (e) {}
-        } else if (fallbackDataURL) {
-            // Firma restaurada (sin puntos internos): se re-aplica desde el dataURL guardado.
-            try { pad.fromDataURL(fallbackDataURL); } catch (e) {}
-        }
-    }
+<!-- MODAL: resultado (vista previa + guardar / grupo / compartir) -->
+<div class="modal modal--oculto" id="modalResultado" role="dialog" aria-modal="true">
+    <div class="modal__caja">
+        <h3 class="modal__titulo" id="resTitulo">Informe generado</h3>
+        <iframe id="previewFrame" title="Vista previa del PDF"></iframe>
+        <div class="modal__acciones">
+            <button type="button" id="btnGrupo" class="btn btn--ok" style="background:var(--c-verde);border-color:var(--c-verde);color:#fff"><svg class="ic"><use href="#ic-send"/></svg> Enviar al grupo</button>
+            <button type="button" id="btnGuardar" class="btn btn-azul"><svg class="ic"><use href="#ic-save"/></svg> Guardar PDF en el teléfono</button>
+            <button type="button" id="btnCompartir" class="btn"><svg class="ic"><use href="#ic-share"/></svg> Compartir…</button>
+            <button type="button" id="btnCerrarRes" class="btn">Cerrar</button>
+        </div>
+        <p class="nota">El borrador queda intacto: recién se limpia cuando iniciás una intervención nueva.</p>
+    </div>
+</div>
 
-    function resizeAllPads() {
-        resizeCanvas(document.getElementById('padT'), padT, firmaTData);
-        resizeCanvas(document.getElementById('padE'), padE, firmaEData);
-    }
+<div id="bannerUpdate"><span>Nueva versión disponible</span><button type="button">Actualizar</button></div>
 
-    // B10: avisar de forma visible si alguna librería CDN no cargó.
-    function avisarCdnFaltante(msg) {
-        let banner = document.getElementById('cdnWarnBanner');
-        if (!banner) {
-            banner = document.createElement('div');
-            banner.id = 'cdnWarnBanner';
-            banner.style.cssText = 'background:#b91c1c;color:#fff;padding:10px;text-align:center;font-weight:bold;font-size:12px;position:sticky;top:0;z-index:100;';
-            document.body.insertBefore(banner, document.body.firstChild);
-        }
-        banner.innerText = msg;
-    }
-
-    window.onload = () => {
-        // B10: detectar CDNs faltantes sin frenar el resto del onload.
-        const faltaSignature = (typeof SignaturePad === 'undefined');
-        const faltaJsPdf = (typeof window.jspdf === 'undefined');
-        if (faltaSignature || faltaJsPdf) {
-            const libs = [];
-            if (faltaSignature) libs.push('firmas (signature_pad)');
-            if (faltaJsPdf) libs.push('PDF (jsPDF)');
-            avisarCdnFaltante(`⚠️ No se pudieron cargar librerías necesarias: ${libs.join(' y ')}. Verificá tu conexión a internet y recargá la app.`);
-        }
-
-        if (!faltaSignature) {
-            padT = new SignaturePad(document.getElementById('padT'));
-            padE = new SignaturePad(document.getElementById('padE'));
-        }
-        initDatalists(); loadDraft();
-        // B11: redimensionar después de loadDraft (que ya restauró las firmas) para que sobrevivan al primer layout.
-        if (!faltaSignature) {
-            resizeAllPads();
-            restaurarFirmas(); // aplicar firmas restauradas sobre los pads ya dimensionados
-            window.addEventListener('resize', resizeAllPads);
-            window.addEventListener('orientationchange', resizeAllPads);
-        }
-        enforzarPisoLabor(document.getElementById('labor'));
-        enforzarDefaultTraslado(document.getElementById('traslado'));
-        if(document.querySelectorAll('.equipo-item').length === 0) addEquipo();
-        evaluarJerarquia();
-        document.querySelectorAll('.persist').forEach(el => el.addEventListener('input', saveDraft));
-    };
-
-    function initDatalists() {
-        const nL = document.getElementById('listaNombres'), sL = document.getElementById('listaSiglaSis'), tL = document.getElementById('listaSiglaTic');
-        DB_LOCALES.forEach(l => { if(l.n!=="-") nL.innerHTML += `<option value="${l.n}">`; if(l.s!=="-") sL.innerHTML += `<option value="${l.s}">`; if(l.t!=="-") tL.innerHTML += `<option value="${l.t}">`; });
-    }
-
-    function sincronizar(o) {
-        const nI = document.getElementById('local'), sI = document.getElementById('siglaSis'), tI = document.getElementById('siglaTic');
-        
-        const valLocal = nI.value.toUpperCase().trim();
-        const valSis = sI.value.toUpperCase().trim();
-        const valTic = tI.value.toUpperCase().trim();
-
-        // 1. Intentar buscar coincidencia completa en la base de datos
-        let enc = DB_LOCALES.find(l => 
-            (o === 'nombre' && l.n.toUpperCase().trim() === valLocal) || 
-            (o === 'sis' && l.s.toUpperCase().trim() === valSis) || 
-            (o === 'tic' && l.t.toUpperCase().trim() === valTic)
-        );
-
-        if (enc) {
-            // Coincidencia encontrada: autocompletamos los tres campos
-            nI.value = enc.n;
-            sI.value = enc.s;
-            tI.value = enc.t;
-            actualizarCodigoInforme(enc.id);
-        } else {
-            // Sin coincidencia: prevenimos el arrastre de datos obsoletos
-            if (o === 'nombre') {
-                // Si cambiamos el nombre y las siglas actuales pertenecen a algún local de la DB,
-                // las limpiamos ya que el nombre ya no coincide con ese local.
-                const asoc = DB_LOCALES.find(l => l.s.toUpperCase().trim() === valSis || l.t.toUpperCase().trim() === valTic);
-                if (asoc) {
-                    sI.value = '';
-                    tI.value = '';
-                }
-            } else if (o === 'sis') {
-                // Si cambiamos la sigla de sistema y el nombre de local actual pertenece a la DB,
-                // lo limpiamos porque ya no coincide con la sigla.
-                const asoc = DB_LOCALES.find(l => l.n.toUpperCase().trim() === valLocal);
-                if (asoc) {
-                    nI.value = '';
-                    tI.value = '';
-                }
-            } else if (o === 'tic') {
-                // Si cambiamos la sigla de ticket y el nombre de local actual pertenece a la DB, lo limpiamos.
-                const asoc = DB_LOCALES.find(l => l.n.toUpperCase().trim() === valLocal);
-                if (asoc) {
-                    nI.value = '';
-                    sI.value = '';
-                }
-            }
-            const codInput = document.getElementById('codigo_informe');
-            if (codInput) codInput.value = '';
-        }
-        saveDraft();
-    }
-
-    function actualizarCodigoInforme(storeId) {
-        const codigoInput = document.getElementById('codigo_informe');
-        if (!codigoInput) return;
-        
-        let currentCode = codigoInput.value;
-        const storeIdStr = String(storeId).padStart(3, '0');
-        
-        if (currentCode && currentCode.startsWith('MF-')) {
-            const parts = currentCode.split('-');
-            if (parts.length === 3) {
-                codigoInput.value = `MF-${parts[1]}-${storeIdStr}`;
-                saveDraft();
-                return;
-            }
-        }
-        
-        const epoch = new Date('2026-01-01T00:00:00');
-        const now = new Date();
-        const diffMs = now - epoch;
-        const diffMinutes = Math.floor(diffMs / 60000);
-        
-        const minutesStr = String(diffMinutes).padStart(6, '0');
-        codigoInput.value = `MF-${minutesStr}-${storeIdStr}`;
-        saveDraft();
-    }
-
-    function toggleLock(t) {
-        locks[t] = !locks[t]; const pad = t === 'T' ? padT : padE;
-        const box = document.getElementById(`box${t}`), btn = box.querySelector('.lock-btn');
-        if(locks[t]) { pad.off(); btn.innerText = "🔒"; box.classList.add('locked'); }
-        else { pad.on(); btn.innerText = "🔓"; box.classList.remove('locked'); }
-    }
-
-    function clearPad(t) {
-        if (locks[t]) return;
-        (t === 'T' ? padT : padE).clear();
-        // También limpiar el dataURL cacheado para que un resize/rotación no resucite la firma borrada.
-        if (t === 'T') firmaTData = ''; else firmaEData = '';
-    }
-
-    function togglePpmPendiente() {
-        const isPendiente = document.getElementById('ppm_pendiente').checked;
-        const ppmInput = document.getElementById('ppm');
-        if (isPendiente) {
-            ppmInput.value = '';
-            ppmInput.disabled = true;
-        } else {
-            ppmInput.disabled = false;
-        }
-        evaluarJerarquia();
-    }
-
-    function evaluarJerarquia() {
-        const isPendiente = document.getElementById('ppm_pendiente') ? document.getElementById('ppm_pendiente').checked : false;
-        // B9: distinguir campo vacío ('') de un 0 real.
-        let ppm = null; // null = sin lectura
-        if (!isPendiente) {
-            const rawPpm = (document.getElementById('ppm').value || '').trim();
-            if (rawPpm !== '') {
-                const parsed = parseInt(rawPpm, 10);
-                ppm = isNaN(parsed) ? null : parsed;
-            }
-        }
-        const tieneLectura = ppm !== null;
-        const fallasAgua = [document.getElementById('f_filtrado').value, document.getElementById('f_ablandador').value, document.getElementById('f_osmosis').value].filter(v => v === 'NO OP').length;
-        waterColor = (isPendiente) ? 
-            (fallasAgua >= 2 ? "ROJO" : (fallasAgua === 1 ? "AMARILLO" : "VERDE")) :
-            (((tieneLectura && (ppm > 300 || (ppm >= 0 && ppm < 50))) || fallasAgua >= 2) ? "ROJO" : ((tieneLectura && ppm >= 120) || fallasAgua === 1 ? "AMARILLO" : "VERDE"));
-        let mS = 0; document.querySelectorAll('.eq-est').forEach(s => { if(s.value==="FUERA DE SERVICIO") mS=2; else if(s.value==="OPERATIVA CON OBS." && mS<2) mS=1; });
-        document.getElementById('statusLed').className = `h-5 w-5 rounded-full ${waterColor==='ROJO'||mS===2?'bg-red-600 animate-pulse':'bg-green-500'}`;
-        saveDraft();
-    }
-
-    // B15: escapar valores dinámicos antes de inyectarlos en innerHTML (mitiga XSS almacenado)
-    function escapeHtml(val) {
-        return String(val == null ? '' : val)
-            .replace(/&/g, '&amp;')
-            .replace(/</g, '&lt;')
-            .replace(/>/g, '&gt;')
-            .replace(/"/g, '&quot;')
-            .replace(/'/g, '&#39;');
-    }
-
-    function addEquipo(v = null) {
-        const div = document.createElement('div'); div.className = "card equipo-item";
-        div.innerHTML = `
-            <div class="flex flex-wrap justify-between items-center mb-3 gap-2">
-                <select translate="no" class="persist-dyn eq-mod font-bold texto-marca w-full sm:w-1/2 border-none p-0 bg-transparent notranslate">
-                    <option value="Cimbali" ${v?.mod==='Cimbali'?'selected':''}>CIMBALI</option><option value="Melitta" ${v?.mod==='Melitta'?'selected':''}>MELITTA</option><option value="Otros" ${v?.mod==='Otros'?'selected':''}>OTROS</option>
-                </select>
-                <div class="flex gap-2 w-full sm:w-auto">
-                    <div class="flex flex-col"><label class="text-[7px]">S/N</label><input type="text" class="persist-dyn eq-sn text-xs text-right border-none" value="${escapeHtml(v?.sn||'')}"></div>
-                    <div class="flex flex-col"><label class="text-[7px]">Shoots</label><input type="number" class="persist-dyn eq-shots text-xs text-right border-none font-black text-blue-600" value="${escapeHtml(v?.shots||'')}"></div>
-                    <button type="button" onclick="this.closest('.equipo-item').remove(); evaluarJerarquia();" class="ml-2 text-red-500 font-bold">&times;</button>
-                </div>
-            </div>
-            <textarea placeholder="DIAGNÓSTICO..." class="persist-dyn eq-diag text-xs mb-2" rows="2">${escapeHtml(v?.diag||'')}</textarea>
-            <textarea placeholder="TRABAJOS REALIZADOS..." class="persist-dyn eq-det text-xs mb-2" rows="2">${escapeHtml(v?.det||'')}</textarea>
-            <div class="flex flex-wrap gap-1 mb-2">${TAREAS.map(t=>`<span class="tag-btn text-[9px]" onclick="addTask(this,'${t}')">${t}</span>`).join('')}</div>
-            
-            <div class="card bg-gray-50 border-none p-2 mt-2">
-                <label class="text-blue-800 font-black mb-1">Higiene Equipo</label>
-                <div class="grid grid-cols-2 gap-2">
-                    <div><label class="text-[7px]">Lanza de vapor</label><select class="persist-dyn h-lanc text-[10px] font-bold"><option value="OP" ${v?.hL==='OP'?'selected':''}>OP</option><option value="SUCIO" ${v?.hL==='SUCIO'?'selected':''}>SUCIO</option></select></div>
-                    <div><label class="text-[7px]">Tolvas Café</label><select class="persist-dyn h-tolv text-[10px] font-bold"><option value="OP" ${v?.hT==='OP'?'selected':''}>OP</option><option value="SUCIO" ${v?.hT==='SUCIO'?'selected':''}>SUCIO</option></select></div>
-                    <div><label class="text-[7px]">Circuito Leche</label><select class="persist-dyn h-leche text-[10px] font-bold"><option value="OP" ${v?.hLe==='OP'?'selected':''}>OP</option><option value="SUCIO" ${v?.hLe==='SUCIO'?'selected':''}>SUCIO</option></select></div>
-                    <div><label class="text-[7px]">Limpieza General</label><select class="persist-dyn h-gral text-[10px] font-bold"><option value="OP" ${v?.hG==='OP'?'selected':''}>OP</option><option value="SUCIO" ${v?.hG==='SUCIO'?'selected':''}>SUCIO</option></select></div>
-                </div>
-            </div>
-
-            <div class="card bg-blue-50 border-none p-2 mt-2">
-                <label class="text-blue-900 font-black mb-1">Stock Insumos</label>
-                <div class="grid grid-cols-3 gap-2">
-                    <div><label class="text-[7px] notranslate" translate="no">Pastillas</label><select translate="no" class="persist-dyn s-past text-[10px] font-bold notranslate"><option value="STOCK" ${v?.sP==='STOCK'?'selected':''}>OK</option><option value="CRÍTICO" ${v?.sP==='CRÍTICO'?'selected':''}>FALTA</option></select></div>
-                    <div><label class="text-[7px]">Líquido</label><select class="persist-dyn s-liq text-[10px] font-bold"><option value="STOCK" ${v?.sL==='STOCK'?'selected':''}>OK</option><option value="CRÍTICO" ${v?.sL==='CRÍTICO'?'selected':''}>FALTA</option></select></div>
-                    <div><label class="text-[7px]">Sal</label><select class="persist-dyn s-sal text-[10px] font-bold"><option value="STOCK" ${v?.sS==='STOCK'?'selected':''}>OK</option><option value="CRÍTICO" ${v?.sS==='CRÍTICO'?'selected':''}>FALTA</option></select></div>
-                </div>
-            </div>
-
-            <div class="space-y-2 border-t pt-2 mt-2">
-                <input type="text" placeholder="PEDIDO REPUESTOS" class="persist-dyn eq-rep-n text-[10px]" value="${escapeHtml(v?.repN||'')}">
-                <input type="number" placeholder="GASTOS FERRETERÍA / INSUMOS (ARS)" class="persist-dyn eq-gas-f text-[10px] font-bold text-green-700" value="${escapeHtml(v?.gasF||'')}" min="0" step="any">
-                <select class="persist-dyn eq-est font-bold text-xs" onchange="evaluarJerarquia()">
-                    <option value="OPERATIVA" ${v?.est==='OPERATIVA'?'selected':''}>OPERATIVA</option><option value="OPERATIVA CON OBS." ${v?.est==='OPERATIVA CON OBS.'?'selected':''}>OPERATIVA CON OBS.</option><option value="FUERA DE SERVICIO" ${v?.est==='FUERA DE SERVICIO'?'selected':''}>FUERA DE SERVICIO</option>
-                </select>
-            </div>`;
-        document.getElementById('equiposGrid').appendChild(div);
-        div.querySelectorAll('.persist-dyn').forEach(el => el.addEventListener('input', saveDraft));
-    }
-
-    function addTask(b, t) { const a = b.closest('.equipo-item').querySelectorAll('textarea')[1]; a.value += (a.value ? ', ' : '') + t; saveDraft(); }
-
-    function renderFotoPreview() {
-        const prev = document.getElementById('fotoPreview');
-        if (!prev) return;
-        prev.innerHTML = '';
-        processedImages.forEach(img => { const d = document.createElement('div'); d.className = "h-12 foto-mini rounded bg-cover bg-center"; d.style.backgroundImage = `url(${img})`; prev.appendChild(d); });
-    }
-
-    document.getElementById('fotoInput').onchange = async (e) => {
-        const help = document.getElementById('fotoHelp');
-        const files = Array.from(e.target.files);
-        const prev = document.getElementById('fotoPreview'); prev.innerHTML = "<p class='col-span-4 text-[8px] animate-pulse'>Procesando...</p>";
-        for (const f of files) {
-            const data = await new Promise(res => {
-                const r = new FileReader(); r.onload = (ev) => {
-                    const img = new Image(); img.onload = () => {
-                        const c = document.createElement('canvas'); const s = 800/img.width; c.width = 800; c.height = img.height*s;
-                        c.getContext('2d').drawImage(img, 0,0,800,c.height); res(c.toDataURL('image/jpeg', 0.7));
-                    }; img.src = ev.target.result;
-                }; r.readAsDataURL(f);
-            });
-            processedImages.push(data);
-        }
-        // B8: acumular sobre las existentes respetando el tope de 8 fotos
-        const totalAcumulado = processedImages.length;
-        processedImages = processedImages.slice(0, 8);
-        if (totalAcumulado > 8) {
-            help.innerText = `⚠️ Límite: Se conservan las primeras 8 fotos (se descartaron ${totalAcumulado - 8}).`;
-        } else {
-            help.innerText = '';
-        }
-        renderFotoPreview();
-        e.target.value = '';
-        saveDraft();
-    };
-
-    function saveDraft() {
-        const d = {
-            c: { fe: document.getElementById('fecha').value, l: document.getElementById('local').value, ss: document.getElementById('siglaSis').value, st: document.getElementById('siglaTic').value, t: document.getElementById('ticket').value, tec: document.getElementById('tecnico').value, pr: document.getElementById('prioridad').value, p: document.getElementById('ppm').value, pp: document.getElementById('ppm_pendiente').checked, cod: document.getElementById('codigo_informe').value, oa: document.getElementById('obsAgua').value, f: document.getElementById('f_filtrado').value, a: document.getElementById('f_ablandador').value, o: document.getElementById('f_osmosis').value, lab: document.getElementById('labor').value, via: document.getElementById('traslado').value, op: document.getElementById('obsPrevias').value, of: document.getElementById('obsFinales').value, enc: document.getElementById('nombreEncargado').value },
-            e: Array.from(document.querySelectorAll('.equipo-item')).map(eq => ({ mod: eq.querySelector('.eq-mod').value, sn: eq.querySelector('.eq-sn').value, shots: eq.querySelector('.eq-shots').value, diag: eq.querySelector('.eq-diag').value, det: eq.querySelector('.eq-det').value, hL: eq.querySelector('.h-lanc').value, hT: eq.querySelector('.h-tolv').value, hLe: eq.querySelector('.h-leche').value, hG: eq.querySelector('.h-gral').value, sP: eq.querySelector('.s-past').value, sL: eq.querySelector('.s-liq').value, sS: eq.querySelector('.s-sal').value, repN: eq.querySelector('.eq-rep-n').value, gasF: eq.querySelector('.eq-gas-f').value, est: eq.querySelector('.eq-est').value }))
-        };
-        // B4: persistir fotos procesadas
-        d.img = processedImages;
-        // B6: persistir firmas (solo si no están vacías)
-        d.firmaT = (padT && !padT.isEmpty()) ? padT.toDataURL() : '';
-        d.firmaE = (padE && !padE.isEmpty()) ? padE.toDataURL() : '';
-        // Guardado defensivo: fotos + firmas pueden acercarse al límite (~5MB) de localStorage.
-        // Si setItem falla (QuotaExceededError) avisamos al técnico una sola vez en lugar de fallar en silencio.
-        try {
-            localStorage.setItem('mostaza_mtz_v12_7', JSON.stringify(d));
-            avisoQuotaMostrado = false;
-        } catch (err) {
-            if (!avisoQuotaMostrado) {
-                avisoQuotaMostrado = true;
-                alert('⚠️ No se pudo guardar el borrador automáticamente: el almacenamiento del navegador está lleno (probablemente por muchas fotos). Generá el PDF ahora para no perder el trabajo y considerá reducir la cantidad de fotos.');
-            }
-        }
-    }
-
-    function loadDraft() {
-        let r = localStorage.getItem('mostaza_mtz_v12_7');
-        if (r === null) { const old = localStorage.getItem('mostaza_mtz_v12_5'); if (old !== null) { localStorage.setItem('mostaza_mtz_v12_7', old); r = old; } }
-        if (!r) return;
-        // B5: parseo defensivo. Si el dato está corrupto o en formato viejo, limpiamos y arrancamos limpio.
-        let d;
-        try {
-            d = JSON.parse(r);
-            if (!d || typeof d !== 'object' || !d.c) throw new Error('Formato de borrador inválido');
-        } catch (err) {
-            localStorage.removeItem('mostaza_mtz_v12_7');
-            return;
-        }
-        document.getElementById('fecha').value = d.c.fe||''; document.getElementById('local').value = d.c.l||''; document.getElementById('siglaSis').value = d.c.ss||'';
-        document.getElementById('siglaTic').value = d.c.st||''; document.getElementById('ticket').value = d.c.t||''; document.getElementById('tecnico').value = d.c.tec||'';
-        document.getElementById('ppm').value = d.c.p||''; 
-        const ppmPendiente = document.getElementById('ppm_pendiente');
-        if (ppmPendiente) {
-            ppmPendiente.checked = d.c.pp || false;
-            document.getElementById('ppm').disabled = ppmPendiente.checked;
-        }
-        document.getElementById('codigo_informe').value = d.c.cod||'';
-        if (d.c.l && !d.c.cod) {
-            const enc = DB_LOCALES.find(l => l.n.toUpperCase().trim() === d.c.l.toUpperCase().trim());
-            if (enc) {
-                actualizarCodigoInforme(enc.id);
-            }
-        }
-        document.getElementById('prioridad').value = d.c.pr || ''; 
-        enforzarPisoLabor(document.getElementById('labor'), d.c.lab); 
-        enforzarDefaultTraslado(document.getElementById('traslado'), d.c.via); 
-        document.getElementById('obsAgua').value = d.c.oa || ''; document.getElementById('obsPrevias').value = d.c.op||''; document.getElementById('obsFinales').value = d.c.of||''; document.getElementById('nombreEncargado').value = d.c.enc||'';
-        if (d.e) { document.getElementById('equiposGrid').innerHTML = ''; d.e.forEach(eq => addEquipo(eq)); }
-        // B4: restaurar fotos y previews
-        if (Array.isArray(d.img)) { processedImages = d.img.slice(0, 8); renderFotoPreview(); }
-        // B6: guardar firmas para re-aplicarlas después del resize del canvas (B11 limpia el pad al redimensionar)
-        firmaTData = d.firmaT || '';
-        firmaEData = d.firmaE || '';
-    }
-
-    // B6/B11: aplica las firmas guardadas sobre los pads ya redimensionados
-    function restaurarFirmas() {
-        if (padT && firmaTData) { try { padT.fromDataURL(firmaTData); } catch (e) {} }
-        if (padE && firmaEData) { try { padE.fromDataURL(firmaEData); } catch (e) {} }
-    }
-
-    function getSemCol(s) { return s === "ROJO" ? [200, 0, 0] : (s === "AMARILLO" ? [234, 179, 8] : [22, 163, 74]); }
-
-    function generarPDF() {
-        try {
-            // B10: verificar que la librería jsPDF esté disponible antes de usarla
-            if (!window.jspdf || !window.jspdf.jsPDF) {
-                alert("No se pudo cargar la librería para generar el PDF (jsPDF). Verificá tu conexión a internet e intentá de nuevo.");
-                return;
-            }
-            // B12: validación suave de campos mínimos (local y fecha)
-            const localVal = (document.getElementById('local').value || '').trim();
-            const fechaVal = (document.getElementById('fecha').value || '').trim();
-            const faltantes = [];
-            if (!localVal) faltantes.push('Nombre Sucursal');
-            if (!fechaVal) faltantes.push('Fecha');
-            if (faltantes.length > 0) {
-                if (!confirm(`Faltan datos: ${faltantes.join(' y ')}. ¿Generar el informe de todos modos?`)) {
-                    return;
-                }
-            }
-            enforzarPisoLabor(document.getElementById('labor'));
-            enforzarDefaultTraslado(document.getElementById('traslado'));
-            const { jsPDF } = window.jspdf; const doc = new jsPDF();
-            let curY = 20;
-
-            // Logo del encabezado con FALLBACK al circulo rojo de marca (robusto offline/file://).
-            const logoCirculo = () => {
-                doc.setFillColor(200, 0, 0); doc.circle(105, 12, 7, 'F');
-                doc.setTextColor(255); doc.setFontSize(14); doc.setFont("helvetica", "bold"); doc.text("M", 105, 14, {align:'center'});
-            };
-            const dibujarLogo = () => {
-                if (LOGO_DATAURL) {
-                    try { doc.addImage(LOGO_DATAURL, 'PNG', 98.5, 5, 13, 12); } catch (e) { logoCirculo(); }
-                } else { logoCirculo(); }
-            };
-
-            // HEADER CORPORATIVO (LOGO OFICIAL + IDENTIDAD DE MARCA)
-            dibujarLogo();
-            doc.setFont("helvetica", "bold"); doc.setFontSize(10); doc.setTextColor(26, 26, 27); doc.text("MOSTAZA MANTENIMIENTO FRANQUICIAS", 105, 23, {align:'center'});
-            doc.setFontSize(12); doc.text("INFORME TÉCNICO", 15, 15);
-            doc.setFontSize(9); doc.setFont("helvetica", "normal"); doc.setTextColor(107, 114, 128); doc.text(document.getElementById('fecha').value || 'S/D', 185, 14, {align:'right'});
-            const reportCode = document.getElementById('codigo_informe').value || 'S/D';
-            doc.setFontSize(8); doc.setFont("helvetica", "bold"); doc.setTextColor(211, 47, 47); doc.text(reportCode, 185, 18, {align:'right'});
-            // Linea divisoria roja de marca bajo el encabezado.
-            doc.setDrawColor(211, 47, 47); doc.setLineWidth(1); doc.line(15, 26.5, 195, 26.5); doc.setLineWidth(0.2);
-            doc.setTextColor(0);
-            curY += 10;
-
-            doc.setDrawColor(200); doc.rect(15, curY, 180, 25);
-            doc.setFont("helvetica", "bold"); doc.text("1. Datos de la Intervención", 17, curY+5);
-            doc.setFont("helvetica", "normal");
-            doc.text(`Local: ${document.getElementById('local').value} (${document.getElementById('siglaTic').value})`, 20, curY+12);
-            doc.text(`Técnico: ${document.getElementById('tecnico').value}`, 20, curY+18);
-            doc.text(`Ticket N°: ${document.getElementById('ticket').value}`, 110, curY+12);
-            doc.text(`Labor: ${document.getElementById('labor').value} hs`, 110, curY+18);
-            doc.setFont("helvetica", "bold"); doc.text(`TRASLADO: ${document.getElementById('traslado').value || '0'} hs`, 20, curY+23);
-            doc.text(`PRIORIDAD: ${document.getElementById('prioridad').value}`, 110, curY+23);
-            curY += 37;
-
-            doc.setFillColor(245); doc.rect(15, curY, 180, 12, 'F');
-            doc.setTextColor(0); doc.setFontSize(10); doc.setFont("helvetica", "bold"); doc.text("2. CALIDAD DE AGUA:", 20, curY+8);
-            const cA = getSemCol(waterColor); doc.setFillColor(cA[0],cA[1],cA[2]); doc.circle(65, curY+7, 3, 'F');
-            doc.setTextColor(0); doc.setFontSize(8); doc.setFont("helvetica", "normal");
-            const ppmVal = document.getElementById('ppm_pendiente').checked ? "PENDIENTE" : (document.getElementById('ppm').value || '-');
-            doc.text(`PPM: ${ppmVal} | FIL: ${document.getElementById('f_filtrado').value} | AB: ${document.getElementById('f_ablandador').value}`, 85, curY+8);
-            curY += 18;
-
-            const detalleHidrico = document.getElementById('obsAgua').value;
-            if(detalleHidrico) {
-                doc.setFontSize(8); doc.setFont("helvetica", "italic");
-                const oaLines = doc.splitTextToSize("Detalle Instalación: " + detalleHidrico, 180);
-                doc.text(oaLines, 15, curY); curY += (oaLines.length * 4) + 5;
-            }
-
-            doc.setFontSize(9); doc.setFont("helvetica", "bold"); doc.text("3. Observaciones Iniciales:", 15, curY);
-            doc.setFontSize(8); doc.setFont("helvetica", "normal");
-            const pL = doc.splitTextToSize(document.getElementById('obsPrevias').value || "Sin observaciones.", 180);
-            doc.text(pL, 15, curY+5); curY += (pL.length * 4) + 10;
-
-            document.querySelectorAll('.equipo-item').forEach((eq, i) => {
-                if(curY > 230) { doc.addPage(); curY = 20; }
-                doc.setFillColor(235); doc.rect(15, curY, 180, 7, 'F');
-                doc.setFontSize(9); doc.setFont("helvetica", "bold"); 
-                doc.text(`4.${i+1} EQUIPO: ${eq.querySelector('.eq-mod').value} (SN: ${eq.querySelector('.eq-sn').value}) | SHOOTS: ${eq.querySelector('.eq-shots').value || '0'}`, 17, curY+5);
-                curY += 12;
-                const status = eq.querySelector('.eq-est').value;
-                let sCol = getSemCol(status.includes("FUERA") ? "ROJO" : (status.includes("OBS") ? "AMARILLO" : "VERDE"));
-                doc.setFont("helvetica", "bold"); doc.text("Detalle:", 15, curY);
-                doc.setFont("helvetica", "normal"); doc.text("Estado Final:", 110, curY);
-                doc.setFillColor(sCol[0], sCol[1], sCol[2]); doc.circle(135, curY-1, 2.5, 'F'); 
-                curY += 5;
-                const dL = doc.splitTextToSize("Diag: " + eq.querySelector('.eq-diag').value, 175); doc.text(dL, 15, curY); curY += (dL.length * 4) + 2;
-                const wL = doc.splitTextToSize("Trabajo: " + eq.querySelector('.eq-det').value, 175); doc.text(wL, 15, curY); curY += (wL.length * 4) + 5;
-                
-                doc.setFontSize(7);
-                doc.text(`Higiene: Lanza vapor ${eq.querySelector('.h-lanc').value} | Tolvas ${eq.querySelector('.h-tolv').value} | Leche ${eq.querySelector('.h-leche').value} | Gral: ${eq.querySelector('.h-gral').value}`, 15, curY); curY += 4;
-                doc.text(`Insumos: Pastillas ${eq.querySelector('.s-past').value} | Líquido ${eq.querySelector('.s-liq').value} | Sal ${eq.querySelector('.s-sal').value}`, 15, curY); curY += 6;
-                doc.setFontSize(8); doc.setFont("helvetica", "bold");
-                doc.text(`Pedido Repuestos: ${eq.querySelector('.eq-rep-n').value || 'Ninguno'}`, 15, curY); curY += 4;
-                doc.text(`Gastos Ferretería/Insumos: $${eq.querySelector('.eq-gas-f').value || '0'} ARS`, 15, curY); curY += 8;
-            });
-
-            if(processedImages.length > 0) {
-                if(curY > 180) { doc.addPage(); curY = 20; }
-                doc.setFont("helvetica", "bold"); doc.text("5. Registro Fotográfico", 15, curY); curY += 10;
-                processedImages.forEach((img, i) => {
-                    if (i > 0 && i % 2 === 0) {
-                        curY += 75;
-                        if (curY + 65 > 270) {
-                            doc.addPage();
-                            curY = 20;
-                        }
-                    }
-                    const x = 15 + (i % 2 * 95);
-                    doc.addImage(img, 'JPEG', x, curY, 90, 65);
-                });
-                curY += 70;
-            }
-
-            if(curY > 240) { doc.addPage(); curY = 20; }
-            doc.setFontSize(9); doc.setFont("helvetica", "bold"); doc.text("6. Recomendaciones Finales:", 15, curY);
-            const fL = doc.splitTextToSize(document.getElementById('obsFinales').value || "Sin recomendaciones.", 180);
-            doc.setFont("helvetica", "normal"); doc.setFontSize(8); doc.text(fL, 15, curY+5); curY += (fL.length * 4) + 15;
-
-            if(curY > 220) { doc.addPage(); curY = 20; }
-            doc.line(15, curY, 195, curY); curY += 10;
-            // B10: si signature_pad no cargó, padT/padE no existen. Evitamos el crash y omitimos las imágenes de firma.
-            if (padT && typeof padT.toDataURL === 'function') { doc.addImage(padT.toDataURL(),'PNG', 15, curY, 60, 30); }
-            if (padE && typeof padE.toDataURL === 'function') { doc.addImage(padE.toDataURL(),'PNG', 120, curY, 60, 30); }
-            doc.setFontSize(8); doc.setFont("helvetica", "bold");
-            doc.text("FIRMA TÉCNICO", 15, curY+35); doc.text(`ENCARGADO: ${document.getElementById('nombreEncargado').value || 'CONFORMIDAD'}`, 120, curY+35);
-
-            doc.addPage(); let resY = 15;
-            dibujarLogo();
-            doc.setFont("helvetica", "bold"); doc.setTextColor(26, 26, 27); doc.setFontSize(10); doc.text("MOSTAZA MANTENIMIENTO FRANQUICIAS", 105, 23, {align:'center'});
-            doc.setFillColor(211, 47, 47); doc.rect(15, 28, 180, 10, 'F');
-            doc.setTextColor(255); doc.setFontSize(12); doc.text("RESUMEN DE ESTADO PARA GERENCIA", 105, 34.5, {align:'center'});
-            resY = 50; doc.setTextColor(0); doc.setFont("helvetica", "bold"); doc.text("DATOS DE CONTROL:", 15, resY);
-            doc.setFont("helvetica", "normal"); doc.text(`LOCAL: ${document.getElementById('local').value}`, 15, resY + 7);
-            doc.text(`TICKET: ${document.getElementById('ticket').value} | FECHA: ${document.getElementById('fecha').value}`, 110, resY + 7);
-            resY += 20;
-            doc.setFont("helvetica", "bold"); doc.text("ESTADO AGUA:", 15, resY); 
-            doc.setFillColor(cA[0], cA[1], cA[2]); doc.circle(45, resY - 1, 3, 'F'); resY += 15;
-            doc.text("ACCIONES POR EQUIPO:", 15, resY); resY += 8;
-            document.querySelectorAll('.equipo-item').forEach(eq => {
-                const s = eq.querySelector('.eq-est').value;
-                let c = getSemCol(s.includes("FUERA") ? "ROJO" : (s.includes("OBS") ? "AMARILLO" : "VERDE"));
-                doc.setFillColor(c[0], c[1], c[2]); doc.circle(18, resY - 1, 2, 'F');
-                doc.setFont("helvetica", "bold");
-                const repText = eq.querySelector('.eq-rep-n').value ? `Repuestos: ${eq.querySelector('.eq-rep-n').value}` : 'Sin pedidos';
-                const gasText = eq.querySelector('.eq-gas-f').value ? ` | Gastos: $${eq.querySelector('.eq-gas-f').value} ARS` : '';
-                doc.text(`${eq.querySelector('.eq-mod').value}: ${repText}${gasText}`, 25, resY);
-                resY += 8;
-            });
-
-            for(let i = 1; i <= doc.internal.getNumberOfPages(); i++) { doc.setPage(i); doc.setFontSize(7); doc.setTextColor(150); doc.text("Mostaza Mantenimiento Franquicias - Control Interno Regional", 105, 290, {align:'center'}); }
-
-            const fname = document.getElementById('siglaTic').value || 'Rep';
-            doc.save(`MTZ_${fname}_${document.getElementById('fecha').value}.pdf`);
-        } catch (e) { alert("Error PDF: " + e.message); }
-    }
-
-    function bloquearInvalidos(e) {
-        if (['e', 'E', '+', '-', '.', ','].includes(e.key)) {
-            e.preventDefault();
-        }
-    }
-
-    function validarLabor(el) {
-        if (el && el.value) {
-            el.value = el.value.replace(/[^0-9]/g, '');
-        }
-    }
-
-    function enforzarPisoLabor(el, customVal) {
-        if (!el) return;
-        let raw = (customVal !== undefined && customVal !== null) ? customVal : el.value;
-        let val = parseInt(raw, 10);
-        if (isNaN(val) || val < 2) {
-            el.value = 2;
-        } else {
-            el.value = val;
-        }
-    }
-
-    function validarTraslado(el) {
-        if (el && el.value) {
-            el.value = el.value.replace(/[^0-9]/g, '');
-        }
-    }
-
-    function enforzarDefaultTraslado(el, customVal) {
-        if (!el) return;
-        let raw = (customVal !== undefined && customVal !== null) ? customVal : el.value;
-        let val = parseInt(raw, 10);
-        if (isNaN(val) || val < 0) {
-            el.value = 0;
-        } else {
-            el.value = val;
-        }
-    }
-
-    function resetAll() { if(confirm("¿BORRAR?")) { localStorage.clear(); location.reload(); } }
-</script>
+<noscript><p style="padding:16px;font-family:sans-serif">Esta aplicación necesita JavaScript activado.</p></noscript>
 </body>
 </html>

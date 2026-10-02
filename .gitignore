@@ -1,0 +1,11 @@
+# Artefactos de Python (tooling de build del Master Brain)
+__pycache__/
+*.pyc
+
+# Artefacto runtime del relay Telegram: lo escribe levantar_relay.sh con la URL
+# efímera del túnel y lo publica en Surge. No va al repo: en GitHub Pages, si no
+# existe, la app lee relay.json -> 404 -> usa el menú nativo de compartir (limpio).
+relay.json
+
+# Dominio personalizado de Surge (no aplica a GitHub Pages)
+CNAME
