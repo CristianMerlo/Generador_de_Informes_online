@@ -3,8 +3,10 @@ __pycache__/
 *.pyc
 
 # Artefacto runtime del relay Telegram: lo escribe levantar_relay.sh con la URL
-# efímera del túnel y lo publica en Surge. No va al repo: en GitHub Pages, si no
-# existe, la app lee relay.json -> 404 -> usa el menú nativo de compartir (limpio).
+# efímera del túnel. Desde 2026-10-03 el watchdog (Supervisor-Project/telegram_bridge/
+# watchdog_relay.sh) lo trackea y lo commitea automáticamente CUANDO el relay está
+# sano (401), para que el botón "Enviar al grupo" funcione también en GitHub Pages.
+# Si no existe o el relay está caído, la app hace 404 -> menú nativo de compartir.
 relay.json
 
 # Dominio personalizado de Surge (no aplica a GitHub Pages)
