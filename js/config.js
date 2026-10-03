@@ -18,15 +18,16 @@ window.CONFIG = (function () {
         // Técnicos de mantenimiento (nombres oficiales según padrón)
         tecnicos: ['FERNANDO SORIA', 'TOMÁS VERA', 'ANABELLA GUERRERO', 'FRANCISCO RAMETTA', 'CRISTIAN MERLO'],
         // Código personal de 4 dígitos por técnico (esquema de las auditorías de
-        // jefatura). EN STANDBY desde V13.10.0: se unifica el Generador con la app
-        // principal (que tendrá login), así que el nombre vendrá del usuario logueado
-        // y no hace falta el código. Poner true para reactivar la versión con código.
-        usarCodigosTecnicos: false,
+        // jefatura). REACTIVADO en V13.12.0 por pedido del owner: funciona como llave
+        // de acceso al informe (sin código válido no se genera) y deja trazabilidad
+        // del técnico en el PDF y en el caption del grupo. El link con ?cod= de la app
+        // principal sigue soportado: precarga el código en el campo.
+        usarCodigosTecnicos: true,
         codigosTecnicos: {
             '1907': 'FERNANDO SORIA',
             '5690': 'TOMÁS VERA',
-            '6056': 'ANABELLA GUERRERO',
-            '3615': 'FRANCISCO RAMETTA',
+            '1959': 'ANABELLA GUERRERO',
+            '1974': 'FRANCISCO RAMETTA',
             '0731': 'CRISTIAN MERLO'
         },
 

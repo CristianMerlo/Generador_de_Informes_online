@@ -468,7 +468,9 @@
         if (!d || d.v !== 13 || !d.c) return;
         estado.tipo = d.tipo || 'presencial';
         $('fecha').value = d.c.fe || ''; $('ticket').value = d.c.tk || '';
-        if (!TEC_FIX) $('tecnico').value = d.c.tec || ''; // con identidad fijada desde la app, el borrador no pisa al técnico
+        if (!TEC_FIX && !CFG.usarCodigosTecnicos) $('tecnico').value = d.c.tec || ''; // con identidad fijada desde la app, el borrador no pisa al técnico
+        // Con códigos activos el borrador NO puede inyectar el nombre sin código: solo
+        // se restaura vía codTec (línea siguiente), que valida resolverCodigoTec.
         if (CFG.usarCodigosTecnicos && d.c.cdt) { $('codTec').value = d.c.cdt; resolverCodigoTec(); }
         $('labor').value = d.c.lab || ''; $('traslado').value = d.c.via || '';
         $('prioridad').value = d.c.pr || ''; $('codigo_informe').value = d.c.cod || '';
@@ -547,14 +549,19 @@
             $('ticket').focus();
             return;
         }
-        if (!$('tecnico').value) {
-            if (CFG.usarCodigosTecnicos) {
-                alert('Indicá tu código personal de técnico (4 dígitos) para generar el informe.');
+        if (CFG.usarCodigosTecnicos) {
+            // La llave es el CODIGO en si: no alcanza con que el nombre oculto venga
+            // de un borrador (asi se colaba la generacion sin clave en V13.12.0).
+            var cTec = ($('codTec').value || '').trim();
+            if (cTec.length !== 4 || !CFG.codigosTecnicos[cTec]) {
+                alert('Ingresá tu código personal de técnico (4 dígitos) válido para generar el informe.');
                 $('codTec').focus();
-            } else {
-                alert('Seleccioná el Técnico Responsable del informe.');
-                $('tecnico').focus();
+                return;
             }
+            $('tecnico').value = CFG.codigosTecnicos[cTec];
+        } else if (!$('tecnico').value) {
+            alert('Seleccioná el Técnico Responsable del informe.');
+            $('tecnico').focus();
             return;
         }
         var faltantes = [];
@@ -642,7 +649,11 @@
         fetch(urlActual).then(function (r) { return r.blob(); }).then(function (b) {
             var fd = new FormData();
             fd.append('pdf', b, $('resTitulo').textContent);
-            fd.append('codigo', ($('codigo_informe').value || '') + ' — ' + (estado.local ? estado.local.n : ''));
+            // caption de seguimiento en el grupo: código — local · Enviado por <técnico>
+            var capCod = ($('codigo_informe').value || '') + ' — ' + (estado.local ? estado.local.n : '');
+            var capTec = (($('tecnico') && $('tecnico').value) || '').trim();
+            if (capTec) capCod += ' · Enviado por ' + capTec;
+            fd.append('codigo', capCod);
             return fetch(endpoint, {
                 method: 'POST',
                 headers: { 'X-MTZ-Clave': CFG.relay.clave },
@@ -800,6 +811,15 @@
         // sesgado); con CFG.usarCodigosTecnicos=true se monta el campo de código personal
         if (CFG.usarCodigosTecnicos) {
             montarCodigoTecnico();
+            // La app principal (MTZ Técnico Franquicias) puede seguir pasando la
+            // identidad por ?cod=<4 dígitos>: en vez de bloquear el nombre, se
+            // precarga el código en el campo y el técnico lo confirma.
+            var codUrl = '';
+            try { codUrl = (new URLSearchParams(location.search).get('cod') || '').trim(); } catch (e) {}
+            if (/^\d{4}$/.test(codUrl) && CFG.codigosTecnicos[codUrl]) {
+                $('codTec').value = codUrl;
+                resolverCodigoTec();
+            }
         } else {
             // Identidad desde MTZ Técnico Franquicias: ?cod=<4 dígitos> (el mismo código
             // personal de siempre). Si coincide, el técnico queda fijado y bloqueado;
