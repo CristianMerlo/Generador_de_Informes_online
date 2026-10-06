@@ -8,7 +8,7 @@
      revalidación; al cambiar la versión cambia la URL y nunca se lee viejo.
    - El SW nuevo se activa inmediatamente (skipWaiting + clients.claim) y la
      app recarga sola al detectar el controllerchange (ver js/app.js). */
-const VERSION = 'mostaza-informes-v13-11-2';
+const VERSION = 'mostaza-informes-v13-12-2';
 const ASSETS = [
   './',
   'index.html',
